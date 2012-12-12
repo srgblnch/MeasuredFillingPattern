@@ -56,6 +56,14 @@
 #  - Maximum peak to peak amplitude
 ###############################################################################
 
+META = u"""
+    $URL: https://svn.code.sf.net/p/tango-ds/code/Servers/Calculation/FillingPatternFCT/src/BunchAnalyzer.py $
+    $LastChangedBy: sergiblanch $
+    $Date: 2012-11-12 13:12:28 +0100 (Mon, 12 Nov 2012) $
+    $Rev: 5766 $
+    License: GPL3+
+    Author: Laura Torino
+""".encode('latin1')
 
 from scipy import *
 from numpy import *
@@ -69,45 +77,158 @@ import PyTango
 import datetime 
 import os, getopt
 
+class BunchAnalyzer:
+    def __init__(self):
+        self._timingProxy = PyTango.DeviceProxy("SR02/TI/EVR-CDI0203-A")
+        self._timingoutput = 0
+        self._delayTick = 18281216
+        self._threshold = 1
 
-#Functions definition
+    def delay(self):
+        '''TODO: document this method'''
+        #backup pulse params
+        pulse_params = self._timingProxy.command_inout("GetPulseParams", self._timingoutput)
+        pulse_params = [int(i) for i in pulse_params]
+    
+        if (pulse_params[1] != self._delayTick):
+            pulse_params = self._timingProxy.command_inout("GetPulseParams", output)
+            pulse_params = [int(i) for i in pulse_params] #command returns numpy array
+            pulse_params[1] = self._delayTick
+            pulse_params = [self._timingoutput] + pulse_params
+            self._timingProxy.command_inout("SetPulseParams",pulse_params)
+        return pulse_params[1]
 
-def Delay():
-    hc_device = PyTango.DeviceProxy("SR02/TI/EVR-CDI0203-A")
-    hc_output = 0 
-    DelayTick = 18281216
-        #bacup pulse_params
-    pulse_params = hc_device.command_inout("GetPulseParams", hc_output)
-    pulse_params = [int(i) for i in pulse_params]
+    def lowPassFilter(self,Samp_Rate, Time_Windows,Start, Cut_Off_Freq, 
+                             x_data, y_data, Secperbin):
+        '''TODO: document this method'''
+        #FIXME: parameters would be in side the class?
+        #cutoff frequency at 0.05 Hz normalized at the Niquist frequency (1/2 samp rate)
+        CutOffFreqNq = Cut_Off_Freq*10**6/(Samp_Rate*0.5)
+        LowFreq = 499*10**6/(Samp_Rate*0.5)
+        HighFreq = 501*10**6/(Samp_Rate*0.5)
+        filterorder = 3            # filter order = amount of additional attenuation for frequencies higher than the cutoff fr.
+        b,a = signal.filter_design.butter(filterorder,[LowFreq,HighFreq])
 
-    if (pulse_params[1] != DelayTick):
-        pulse_params = device.command_inout("GetPulseParams", output)
-        pulse_params = [int(i) for i in pulse_params] #command returns numpy array
-        pulse_params[1] = DelayTick
-        pulse_params = [hc_output] + pulse_params
-        device.command_inout("SetPulseParams",pulse_params)
-    return pulse_params[1]
+        y_Fil = copy(y_data)
+        y_Fil = signal.lfilter(b,a,y_data)
 
+        i = 0
+        for i in range(0, Start):
+            y_Fil[i] = sum(y_Fil)/len(y_Fil)#FIXME: this would be improved using numpy
+        return y_Fil[Start:len(y_Fil)-1]
 
+    def peakToPeak(self,Time_Window, x_data, y_Fil):
+        '''TODO: document this method'''
+        #FIXME: parameters would be in side the class?
+        p_to_p = [] 
+        k = 0 
+        Start = 0
+        Av = sum(y_Fil)/len(y_Fil)
+        #Analysis
+        print "Data analysis"
+        while (Start < len(y_Fil)-1):
+            k = 0
+            time_win_ar = [] #Array that leasts the considered time window
+            if (Start + Time_Window < len(y_Fil)-1):
+                for k in range(0, Time_Window):
+                    time_win_ar.append(y_Fil[Start+k])
+                if (max(time_win_ar) > Av and min(time_win_ar) > Av):
+                    p_to_p.append(0)
+                else:
+                    p_to_p.append(max(time_win_ar)-min(time_win_ar))
+            Start = Start + Time_Window
+        i = 0
+        Max = max(p_to_p)
+        #thr = input('Threshold (%): ')
+        thr = self._threshold
+        thr = thr*0.01
+        for i in range (0, len(p_to_p)-1):
+            if (p_to_p[i] < thr*Max): #Threshold set at 1% of the maximum peak to peak amplitude
+                p_to_p[i] = 0
+        if (len(p_to_p) == 0):
+            print "No Beam!"#FIXME: would be this a raise exception?
+        return p_to_p
 
+    def bunchCount(self,vec_p_to_p):
+        '''TODO: document this method'''
+        #FIXME: parameters would be in side the class?
+        count = 0
+        bunch = 0
+        #TODO: document the loop
+        for count in range(0, len(vec_p_to_p)-1):
+            if(vec_p_to_p[count] > 0):
+                bunch = bunch + 1
+        return bunch
 
-def LowPassFilter(Samp_Rate, Time_Windows,Start, Cut_Off_Freq, x_data, y_data, Secperbin):
-    CutOffFreqNq = Cut_Off_Freq*10**6/(Samp_Rate*0.5)  #cutoff frequency at 0.05 Hz normalized at the Niquist frequency (1/2 samp rate)
-    LowFreq = 499*10**6/(Samp_Rate*0.5)
-    HighFreq = 501*10**6/(Samp_Rate*0.5)
-    filterorder = 3            # filter order = amount of additional attenuation for frequencies higher than the cutoff fr.
-    b,a = signal.filter_design.butter(filterorder,[LowFreq,HighFreq])
+    def spuriousBunches(self,vec_p_to_p):
+        '''TODO: document this method'''
+        #FIXME: parameters would be in side the class?
+        i = 0
+        j = 0
+        sp_bun = 0
+        #TODO: document
+        if (vec_p_to_p [i] != 0 and vec_p_to_p[i+1] == 0):
+            sp_bun = sp_bun + 1
+        i = i + 1 
+        #TODO: document the loop
+        while (i < len(vec_p_to_p)-1):
+            if (i < len(vec_p_to_p)-10 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+10] == 0):
+                while (j < 10):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-9 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+9] == 0):
+                while (j < 9):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-8 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+8] == 0):
+                while (j < 8):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-7 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+7] == 0):
+                while (j < 7):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-6 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+6] == 0):
+                while (j < 6):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-5 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+5] == 0):
+                while (j < 5):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-4 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+4] == 0):
+                while (j < 4):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-3 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+3] == 0):
+                while (j < 3):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-2 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+2] == 0):
+                while (j < 2):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-1 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+1] == 0):
+                sp_bun = sp_bun +1
+                j = 1
+            i = i + j + 1
+            j = 0
+        if (vec_p_to_p[len(vec_p_to_p)-1] != 0 and vec_p_to_p[len(vec_p_to_p)-2] == 0 ):
+            sp_bun = sp_bun + 1
+    
+        return sp_bun
 
-    y_Fil = copy(y_data)
-    y_Fil = signal.lfilter(b,a,y_data)
-
-    i = 0
-    for i in range(0, Start):
-        y_Fil[i] = sum(y_Fil)/len(y_Fil)
-
-
+def plot1(x_data,y_data,y_Fil):
     #Plotting raw and filtered data
-
     f1 = figure()
     af1 = f1.add_subplot(111)
     #af1.plot(array(x_data)*2.5e-2,y_data)
@@ -116,140 +237,30 @@ def LowPassFilter(Samp_Rate, Time_Windows,Start, Cut_Off_Freq, x_data, y_data, S
     #af1.plot(array(x_data)*2.5e-2, y_Fil, 'r')
     af1.plot(array(x_data), y_Fil, 'r')
     savefig('scope_LowPassFil.png')
-
+def plot2(x_data,y_Fil):
     f2 = figure()
     af2 = f2.add_subplot(111)
-#    af2.plot(array(x_data)*2.5e-2, y_Fil, 'r') 
-    af2.plot(array(x_data), y_Fil, 'r') 
+#    af2.plot(array(x_data)*2.5e-2, y_Fil, 'r')
+    af2.plot(array(x_data), y_Fil, 'r')
     plt.title("Filtered Data")
     savefig('scope_FilSig.png')
-    return y_Fil[Start:len(y_Fil)-1]
-    
-def PeakToPeak(Time_Window, x_data, y_Fil):
-    p_to_p = [] 
-    k = 0 
-    Start = 0
-    Av = sum(y_Fil)/len(y_Fil)
-
-    #Analysis
-
-    print "Data analysis"
-    while (Start < len(y_Fil)-1):
-        k = 0
-        time_win_ar = [] #Array that leasts the considered time window
-        if (Start + Time_Window < len(y_Fil)-1):
-            for k in range(0, Time_Window): 
-                time_win_ar.append(y_Fil[Start+k])
-            if (max(time_win_ar) > Av and min(time_win_ar) > Av):
-                p_to_p.append(0)
-            else:
-                p_to_p.append(max(time_win_ar)-min(time_win_ar))
-                Start = Start + Time_Window
-
-    i = 0
-    Max = max(p_to_p)
-    thr = input('Threshold (%): ')
-    thr = thr*0.01
-    for i in range (0, len(p_to_p)-1):
-        if (p_to_p[i] < thr*Max): #Threshold set at 1% of the maximum peak to peak amplitude
-            p_to_p[i] = 0
-
+def plot3(p_to_p):
     #Potting the peak to peak signal in function of the bunch number
-
-    if (len(p_to_p) == 0):
-            print "No Beam!"
-    
     f3 = figure()
     af3 = f3.add_subplot(111)
-    plt.bar(range(len(p_to_p)), p_to_p/max(p_to_p)) 
+    plt.bar(range(len(p_to_p)), p_to_p/max(p_to_p))
     xlabel('Bucket Number')
     ylabel('Normalized peak to peak amplitude')
     plt.title("Peak to Peak")
-    savefig('scope_peakTOpeakTimeWin.png')
-
-    return p_to_p
-
-
-def BunchCount(vec_p_to_p):
-    count = 0
-    bunch = 0
-
-    for count in range(0, len(vec_p_to_p)-1):
-        if(vec_p_to_p[count] > 0):
-            bunch = bunch + 1
-    return bunch
-
-def SpuriousBunches(vec_p_to_p):
-    i = 0
-    j = 0
-    sp_bun = 0
-
-    if (vec_p_to_p [i] != 0 and vec_p_to_p[i+1] == 0):
-        sp_bun = sp_bun + 1
-    i = i + 1 
-
-    while (i < len(vec_p_to_p)-1):
-        if (i < len(vec_p_to_p)-10 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+10] == 0):
-            while (j < 10):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-9 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+9] == 0):
-            while (j < 9):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-8 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+8] == 0):
-            while (j < 8):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-7 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+7] == 0):
-            while (j < 7):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-6 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+6] == 0):
-            while (j < 6):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-5 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+5] == 0):
-            while (j < 5):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-4 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+4] == 0):
-            while (j < 4):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-3 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+3] == 0):
-            while (j < 3):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-2 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+2] == 0):
-            while (j < 2):
-                if (vec_p_to_p[i+j] != 0):
-                    sp_bun = sp_bun +1
-                j = j + 1
-        elif (i < len(vec_p_to_p)-1 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+1] == 0):
-            sp_bun = sp_bun +1
-            j = 1
-        i = i + j + 1
-        j = 0
-    if (vec_p_to_p[len(vec_p_to_p)-1] != 0 and vec_p_to_p[len(vec_p_to_p)-2] == 0 ):
-        sp_bun = sp_bun + 1
-
-    return sp_bun
+    savefig('scope_peakTOpeakTimeWin.png') 
 
 def main():
+    bunchAnalyzer = BunchAnalyzer()
 
     # Setting Offset and scale
     taurus.Attribute('SR02/DI/sco-01/OffsetH').write(2e-07)
     taurus.Attribute('SR02/DI/sco-01/ScaleH').write(1e-07)
-    TimeDel = Delay()
+    TimeDel = bunchAnalyzer.delay()
     print "Offset: ", taurus.Attribute('SR02/DI/sco-01/OffsetH').read().value*1e9, " ns"
     print "Scale: ", taurus.Attribute('SR02/DI/sco-01/ScaleH').read().value*1e9, " ns"
     print "Time delay: ", TimeDel
@@ -289,19 +300,23 @@ def main():
     
     ################################################ Filtering Data #######################################################
         
-    y_fil = LowPassFilter(SampRate, time_win, start, CutOffFreq, x, y, secperbin)
+    y_fil = bunchAnalyzer.lowPassFilter(SampRate, time_win, start, CutOffFreq, x, y, secperbin)
+    plot1(x[:len(y_fil)],y[:len(y_fil)],y_fil)
+    plot2(x[:len(y_fil)],y_fil)
     
     ################################################ Analysis ##############################################################
     
-    P_to_P = PeakToPeak(time_win, x, y_fil)
+    bunchAnalyzer._threshold = input('Threshold (%): ')
+    P_to_P = bunchAnalyzer.peakToPeak(time_win, x, y_fil)
+    plot3(P_to_P)
     
     ################################################ Bunch Counting #########################################################
     
-    Bunch = BunchCount(P_to_P)
+    Bunch = bunchAnalyzer.bunchCount(P_to_P)
     
     ################################################ Spurious Bunches #######################################################
     
-    Sp_Bun = SpuriousBunches(P_to_P)
+    Sp_Bun = bunchAnalyzer.spuriousBunches(P_to_P)
     
     ################################################ Output #################################################################
     
@@ -320,4 +335,4 @@ def main():
     show()
     
 if __name__ == "__main__":
-    main()    
+    main()

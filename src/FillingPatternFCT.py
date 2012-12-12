@@ -51,6 +51,16 @@ import sys
 # Add additional import
 #----- PROTECTED REGION ID(FillingPatternFCT.additionnal_import) ENABLED START -----#
 
+
+META = u"""
+    $URL: https://svn.code.sf.net/p/tango-ds/code/Servers/Calculation/FillingPatternFCT/src/FillingPatternFCT.py $
+    $LastChangedBy: sergiblanch $
+    $Date: 2012-11-12 13:12:28 +0100 (Mon, 12 Nov 2012) $
+    $Rev: 5766 $
+    License: GPL3+
+    Author: Sergi Blanch
+""".encode('latin1')
+
 #----- PROTECTED REGION END -----#	//	FillingPatternFCT.additionnal_import
 
 ## Device States Description
