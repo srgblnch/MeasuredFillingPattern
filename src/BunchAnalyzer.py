@@ -66,33 +66,39 @@ META = u"""
 """.encode('latin1')
 
 from numpy import *
-from copy import copy
+from copy import copy,deepcopy
 from scipy import signal
 import PyTango
 
 class BunchAnalyzer:
     def __init__(self,parent=None,timingDevName=None,scopeDevName=None,
                   timingoutput=0,delayTick=18281216,threashold=1,
-                  nAcquisitions=30,cyclicBuffer=None):
-        try:
-            self._parent=parent
-        except:
-            pass#TODO
+                  nAcquisitions=30,cyclicBuffer=None,
+                  startingPoint=906):
+        self._parent=parent
         try:
             self._timingDevName = timingDevName
             self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
         except Exception,e:
-            pass#TODO
+            self._timingProxy = None
         try:
             self._scopeDevName = scopeDevName
             self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
         except Exception,e:
-            pass#TODO
+            self._scopeProxy = None
         self._timingoutput = timingoutput
         self._delayTick = delayTick
         self._threshold = threashold
         self._nAcquisitions = nAcquisitions
         self._cyclicBuffer = cyclicBuffer
+        self._startingPoint = startingPoint
+        self._scopeSampleRate = 4.0e1
+        self._rfFrequency = 499000000
+        
+        #outputs
+        self._filledBunches = 0
+        self._spuriousBunches = 0
+        self._bunchIntensity = []
 
     ####
     # Auxiliary setters and getters to modify the behaviour from the device server
@@ -130,6 +136,18 @@ class BunchAnalyzer:
         return self._cyclicBuffer
     def setCyclicBuffer(self,buffer):
         self._cyclicBuffer = buffer
+    def getStartingPoint(self):
+        return self._startingPoint
+    def setStartingPoint(self,value):
+        self._startingPoint = value
+    def getScopeSampleRate(self):
+        return self._scopeSampleRate
+    def setScopeSampleRate(self,value):
+        self._scopeSampleRate = value
+    def getRfFrequency(self):
+        return self._rfFrequency
+    def setRfFrequency(self,value):
+        self._rfFrequency = value
     # done auxiliary setters and getters to modify the behaviour from the device server
     ####
 
@@ -142,6 +160,13 @@ class BunchAnalyzer:
             else:
                 print("debug: %s"%(msg))
         except: print("cannot print in debug stream (%s)"%msg)
+    def warn(self,msg):
+        try:
+            if self._parent:
+                self._parent.warn_stream(msg)
+            else:
+                print("warn: %s"%(msg))
+        except: print("cannot print in warn stream (%s)"%msg)
     def subscribe_event(self,attrName):
         self._scopeChAttrEvent = self._scopeProxy.subscribe_event(attrName,
                                                                   PyTango.EventType.CHANGE_EVENT,
@@ -153,20 +178,62 @@ class BunchAnalyzer:
     #a callback method for the scope channel attribute
     def push_event(self,event):
         self.debug("PushEvent() %s: array of %d elements"%(event.attr_name,event.attr_value.value.size))
+        #TODO: timestamps when this starts
+        eventList = []
         #populate the cyclicBuffer
         self._cyclicBuffer.append(event.attr_value.value)
         #state changes between STANDBY<->ON when the len(cyclicBuffer)<nAcquitions
         bufLen = len(self._cyclicBuffer)
-        if bufLen < self._nAcquisitions and self._parent.get_state() != PyTango.DevState.STANDBY:
-            self._parent.change_state(PyTango.DevState.STANDBY)
-        elif bufLen == self._nAcquisitions and self._parent.get_state() != PyTango.DevState.ON:
-            self._parent.change_state(PyTango.DevState.ON)
+        if bufLen < self._nAcquisitions:
+            if self._parent.get_state() != PyTango.DevState.STANDBY:
+                self._parent.change_state(PyTango.DevState.STANDBY)
+            eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_CHANGING])
         else:
             while len(self._cyclicBuffer) > self._nAcquisitions:
                 self._cyclicBuffer.pop(0)
-        self._parent.fireEventsList([['CyclicBuffer',self._cyclicBuffer,PyTango.AttrQuality.ATTR_CHANGING]])
+            if self._parent.get_state() != PyTango.DevState.ON:
+                self._parent.change_state(PyTango.DevState.ON)
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_VALID])
+        eventList.append(['CyclicBuffer',self._cyclicBuffer,PyTango.AttrQuality.ATTR_CHANGING])
+        self._parent.fireEventsList(eventList)
         #TODO: are there any scope attribute to reread when a new waveform is received?
         #      or any that must be reread after N waveforms received
+        #with the current values on the cyclic buffer, analyze it.
+        #FIXME: why call delay when we are maintaining the delayTick
+        self.debug("Time delay: %d (DelayTick: %d)"%(self.delay(),self.getDelayTick()))
+        #Usefull variables
+        SampRate = self._scopeSampleRate
+        secperbin = 1./SampRate 
+        CutOffFreq = 500
+        freq = self._rfFrequency
+        time_win = int((1/freq)/secperbin)
+        Tot_Bucket = int(448*2*10**(-9)/secperbin)
+        #Starting point ~ 907 bin = 22.675 ns when 
+        #    Timing = 146351002 ns,
+        #    OffsetH = 200 ns,
+        #    ScaleH = 100 ns
+        start = self.getStartingPoint()
+        #NOT WORKING IF THE BEAM IS UNSTABLE
+#        y = array(self._cyclicBuffer[0][0:Tot_Bucket+start+1])
+#        for i in range(1,len(self._cyclicBuffer)):
+#            y += array(self._cyclicBuffer[i][0:Tot_Bucket+start+1])
+#        y = y/(len(self._cyclicBuffer))
+#        print len(y)
+#        x = range(len(y))
+#        print len(x)
+#        #the calculation itself
+#        self._bunchIntensity = self.lowPassFilter(SampRate, time_win, start, CutOffFreq, x, y, secperbin)
+#        P_to_P = self.peakToPeak(time_win, x, self._bunchIntensity)
+#        self._filledBunches = self.bunchCount(P_to_P)
+#        self._spuriousBunches = self.spuriousBunches(P_to_P)
+#        #emit output events
+#        eventList = []
+#        eventList.append(['BunchIntensity',self._bunchIntensity])
+#        eventList.append(['FilledBunches',self._filledBunches])
+#        eventList.append(['SpuriousBunches',self._spuriousBunches])
+#        self._parent.fireEventsList(eventList)
+#        #TODO: time stamps when this finish to know: how long it has take,
+#        #                                            to calculate the output frequency
     # done auxiliary methods to manage events
     ####
 
@@ -175,9 +242,11 @@ class BunchAnalyzer:
     def delay(self):
         '''TODO: document this method'''
         #backup pulse params
+        if self._timingProxy == None:
+            self.warn("BuncherAnalyzer.delay() not callable if Event Receiver property not configured")
+            return self._delayTick
         pulse_params = self._timingProxy.command_inout("GetPulseParams", self._timingoutput)
         pulse_params = [int(i) for i in pulse_params]
-    
         if (pulse_params[1] != self._delayTick):
             pulse_params = self._timingProxy.command_inout("GetPulseParams", output)
             pulse_params = [int(i) for i in pulse_params] #command returns numpy array
@@ -202,7 +271,7 @@ class BunchAnalyzer:
 
         i = 0
         for i in range(0, Start):
-            y_Fil[i] = sum(y_Fil)/len(y_Fil)#FIXME: this would be improved using numpy
+            y_Fil[i] = sum(y_Fil)/len(y_Fil)#FIXME: is this using numpy?
         return y_Fil[Start:len(y_Fil)-1]
 
     def peakToPeak(self,Time_Window, x_data, y_Fil):
