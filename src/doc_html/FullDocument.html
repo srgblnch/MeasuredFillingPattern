@@ -143,8 +143,8 @@
 		<td> <center><b> Default Value </b></center> </td>
 	</tr>
 	<tr>
-		<td> eventReceiverDevice </td>
-		<td>  </td>
+		<td> erDev </td>
+		<td> Event Receiver Device name </td>
 		<td> String </td>
 		<td> none </td>
 	</tr>
@@ -155,10 +155,16 @@
 		<td> none </td>
 	</tr>
 	<tr>
-		<td> scopeDevice </td>
-		<td>  </td>
+		<td> scoDev </td>
+		<td> Scope Device name where one channel has the FCT signal </td>
 		<td> String </td>
 		<td> none </td>
+	</tr>
+	<tr>
+		<td> AutoStart </td>
+		<td> Configure if the device must start the calculation by default when it is launched </td>
+		<td> boolean </td>
+		<td> True <br> </td>
 	</tr>
 </table>
 <br><br>
@@ -2380,15 +2386,27 @@
 	</tr>
 	<tr>
 		<td> ALARM </td>
-		<td>  </td>
+		<td> Check the status, something is not running as expected, but the calculations are still alive. </td>
 	</tr>
 	<tr>
 		<td> OFF </td>
-		<td>  </td>
+		<td> The device is alive, but is not reading anything, neither doing any calculation </td>
 	</tr>
 	<tr>
 		<td> ON </td>
-		<td>  </td>
+		<td> Device is doing the calculation normally </td>
+	</tr>
+	<tr>
+		<td> STANDBY </td>
+		<td> The calculation have start, but not with the expected #samples in the cyclic buffer  </td>
+	</tr>
+	<tr>
+		<td> FAULT </td>
+		<td> Something out of the specs, calculation stopped. Check the status. </td>
+	</tr>
+	<tr>
+		<td> INIT </td>
+		<td> Just when the device is launched until its build procedure is done </td>
 	</tr>
 </table>
 </body>

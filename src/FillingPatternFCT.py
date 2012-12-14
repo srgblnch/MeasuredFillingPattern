@@ -50,29 +50,166 @@ import PyTango
 import sys
 # Add additional import
 #----- PROTECTED REGION ID(FillingPatternFCT.additionnal_import) ENABLED START -----#
-
+import time
+import threading
+from BunchAnalyzer import BunchAnalyzer
 
 META = u"""
     $URL: https://svn.code.sf.net/p/tango-ds/code/Servers/Calculation/FillingPatternFCT/src/FillingPatternFCT.py $
     $LastChangedBy: sergiblanch $
-    $Date: 2012-11-12 13:12:28 +0100 (Mon, 12 Nov 2012) $
-    $Rev: 5766 $
+    $Date: 2012-12-12 11:33:48 +0100 (Wed, 12 Dec 2012)$
+    $Rev: 5901 $
     License: GPL3+
     Author: Sergi Blanch
 """.encode('latin1')
 
+DEFAULT_NACQUSITIONS = 5#30
+
 #----- PROTECTED REGION END -----#	//	FillingPatternFCT.additionnal_import
 
 ## Device States Description
-## ALARM : 
-## OFF : 
-## ON : 
+## ALARM : Check the status, something is not running as expected, but the calculations are still alive.
+## OFF : The device is alive, but is not reading anything, neither doing any calculation
+## ON : Device is doing the calculation normally
+## STANDBY : The calculation have start, but not with the expected #samples in the cyclic buffer 
+## FAULT : Something out of the specs, calculation stopped. Check the status.
+## INIT : Just when the device is launched until its build procedure is done
 
 class FillingPatternFCT (PyTango.Device_4Impl):
 
     #--------- Add you global variables here --------------------------
     #----- PROTECTED REGION ID(FillingPatternFCT.global_variables) ENABLED START -----#
+    def cleanAllImportantLogs(self):
+        #@todo: clean the important logs when they loose importance.
+        self.debug_stream("In %s::cleanAllImportantLogs()"%self.get_name())
+        self._important_logs = []
+        self.addStatusMsg("")
+
+    def addStatusMsg(self,current,important = False):
+        self.debug_stream("In %s::addStatusMsg()"%self.get_name())
+        msg = "The device is in %s state.\n"%(self.get_state())
+        for ilog in self._important_logs:
+            msg = "%s%s\n"%(msg,ilog)
+        status = "%s%s\n"%(msg,current)
+        self.set_status(status)
+        self.push_change_event('Status',status)
+        if important and not current in self._important_logs:
+            self._important_logs.append(current)
+
+    def change_state(self,newstate):
+        self.debug_stream("In %s::change_state(%s)"%(self.get_name(),str(newstate)))
+        self.set_state(newstate)
+        self.push_change_event('State',newstate)
+        self.cleanAllImportantLogs()
+
+    def createThread(self):
+        self.debug_stream("In %s::createThread()"%self.get_name())
+        #TODO: check if the thread can be created or if it is already created
+        if not self.get_state() in [PyTango.DevState.OFF]:
+            return False
+        if hasattr(self,'_thread') and self._thread and self._thread.isAlive():
+            self.debug_stream("In %s::createThread(): Trying to start threading when is already started."%self.get_name())
+            self.change_state(PyTango.DevState.FAULT)
+            self.addStatusMsg("Try to start the calculation thread when is already running.",important=True)
+            return False
+        self.debug_stream("In %s::createThread(): Start calculation threading."%self.get_name())
+        try:
+            self._joinerEvent = threading.Event()#to communicate between threads
+            self._joinerEvent.clear()
+            self._startCmd = threading.Event()#Start command has been received
+            self._startCmd.clear()
+            if self.AutoStart:
+                self._startCmd.set()
+            self._stopCmd = threading.Event()#Stop command has been received
+            self._stopCmd.clear()
+            self._thread = threading.Thread(target=self.analyzerThread)
+            self._thread.setDaemon(True)
+            self._thread.start()
+            self.debug_stream("In %s::createThread(): Thread created."%self.get_name())
+        except Exception,e:
+            self.warn_stream("In %s::createThread(): Exception creating thread: %s."%(self.get_name(),e))
+            self.change_state(PyTango.DevState.FAULT)
+            self.addStatusMsg("Exception creating calculation thread.",important=True)
+            return False
+        return True
+    def deleteThread(self):
+        self.debug_stream("In %s::deleteThread(): Stoping acquisition threading."%self.get_name())
+        self.stopInstrument()
+        if hasattr(self,'_joinerEvent'):
+            self.debug_stream("In %s::deleteThread(): sending join event."%self.get_name())
+            self._joinerEvent.set()
+        if hasattr(self,'_thread'):
+            self.debug_stream("In %s::deleteThread(): Thread joining."%self.get_name())
+            self._thread.join(1)
+            if self._thread.isAlive():
+                self.debug_stream("In %s::deleteThread(): Thread joined."%self.get_name())
     
+    def analyzerThread(self):
+        self.debug_stream("In %s::analyzerThread(): Thread started."%self.get_name())
+        if not hasattr(self,'_joinerEvent'):
+            raise Exception("Not possible to start the loop because it have not end condition")
+#        self.change_state(PyTango.DevState.STANDBY)#FIXME: change the state when it starts to work
+#        self.cleanAllImportantLogs()
+#        self.addStatusMsg("Starting buffer population")
+        #Build the analyzer object
+        try:
+            self._bunchAnalyzer = BunchAnalyzer(parent=self,
+                                                timingDevName=self.erDev,
+                                                scopeDevName=self.scoDev,
+                                                nAcquisitions=self.attr_nAcquisitions_read,
+                                                cyclicBuffer=self.attr_cyclicBuffer_read)
+        except:
+            self.change_state(PyTango.DevState.FAULT)
+            self.addStatusMsg("Cannot build the analyzer",important=True)
+            return
+        while not self._joinerEvent.isSet():
+            #TODO: passive wait until no new data is available
+            #FIXME: can this start with less samples in the buffer than the 
+            #       number configured in the nAcquisitions attribute?
+            #TODO: if a loop takes too long ALARM state and a message
+            try:
+                if self._startCmd.isSet():
+                    self._startCmd.clear()
+                    if not self.get_state() in [PyTango.DevState.STANDBY,
+                                                PyTango.DevState.ON]:
+                        try:
+                            # Subscribe to events of the scope channel
+                            self._bunchAnalyzer.subscribe_event(self.FCTAttribute)
+                        except Exception,e:
+                            self.change_state(PyTango.DevState.FAULT)
+                            self.addStatusMsg("Cannot subscribe to the FCT",important=True)
+                            self.debug_stream("Cannot subscribe to the FCT due to: %s"%(e))
+                if self._stopCmd.isSet():
+                    self._stopCmd.clear()
+                    if not self.get_state() in [PyTango.DevState.OFF]:
+                        try:
+                            self._bunchAnalyzer.unsubscribe_event()
+                        except Exception,e:
+                            self.change_state(PyTango.DevState.FAULT)
+                            self.addStatusMsg("Cannot unsubscribe to the FCT",important=True)
+                            self.debug_stream("Cannot unsubscribe to the FCT due to: %s"%(e))
+                time.sleep(1)
+                #do the bunch analysis
+                #fire events with the results
+                pass
+            except Exception,e:
+                pass
+            
+    def fireEventsList(self,eventsAttrList):
+        #self.debug_stream("In %s::fireEventsList()"%self.get_name())
+        #@todo: add the value on the push_event
+        timestamp = time.time()
+        for attrEvent in eventsAttrList:
+            try:
+                self.debug_stream("In %s::fireEventsList() attribute: %s"%(self.get_name(),attrEvent[0]))
+                if len(attrEvent) == 3:#specifies quality
+                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,attrEvent[2])
+                else:
+                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,PyTango.AttrQuality.ATTR_VALID)
+            except Exception,e:
+                self.error_stream("In %s::fireEventsList() Exception with attribute %s"%(self.get_name(),attrEvent[0]))
+                print e
+
     #----- PROTECTED REGION END -----#	//	FillingPatternFCT.global_variables
 
     def __init__(self,cl, name):
@@ -86,7 +223,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
     def delete_device(self):
         self.debug_stream("In delete_device()")
         #----- PROTECTED REGION ID(FillingPatternFCT.delete_device) ENABLED START -----#
-        
+        self.deleteThread()
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.delete_device
 
     def init_device(self):
@@ -104,7 +241,20 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.attr_BunchIntensity_read = [0.0]
         self.attr_cyclicBuffer_read = [[0.0]]
         #----- PROTECTED REGION ID(FillingPatternFCT.init_device) ENABLED START -----#
-        
+        self.attr_nAcquisitions_read = DEFAULT_NACQUSITIONS
+        self._important_logs = []
+        #prepare attributes that will have events
+        self.set_change_event('State', True, False)
+        self.set_change_event('Status', True, False)
+        self.set_change_event('cyclicBuffer',True,False)
+        self.change_state(PyTango.DevState.OFF)
+        #prepare the analyzer thread
+        if self.createThread():
+            self.addStatusMsg("Analyzer thread well created")
+        else:
+            self.change_state(PyTango.DevState.FAULT)
+            self.cleanAllImportantLogs()
+            self.addStatusMsg("Analyzer thread cannot be created")
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.init_device
 
     def always_executed_hook(self):
@@ -176,7 +326,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
     def read_TimingTrigger(self, attr):
         self.debug_stream("In read_TimingTrigger()")
         #----- PROTECTED REGION ID(FillingPatternFCT.TimingTrigger_read) ENABLED START -----#
-        attr.set_value(self.attr_TimmingTrigger_read)
+        attr.set_value(self.attr_TimingTrigger_read)
         
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.TimingTrigger_read
         
@@ -190,6 +340,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
     def read_nAcquisitions(self, attr):
         self.debug_stream("In read_nAcquisitions()")
         #----- PROTECTED REGION ID(FillingPatternFCT.nAcquisitions_read) ENABLED START -----#
+        self.attr_nAcquisitions_read = self._bunchAnalyzer.getNAcquisitions()
         attr.set_value(self.attr_nAcquisitions_read)
         
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nAcquisitions_read
@@ -198,7 +349,8 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.debug_stream("In write_nAcquisitions()")
         data=attr.get_write_value()
         #----- PROTECTED REGION ID(FillingPatternFCT.nAcquisitions_write) ENABLED START -----#
-        
+        print data
+        self._bunchAnalyzer.setNAcquisitions(int(data))
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nAcquisitions_write
         
     def read_FilledBunches(self, attr):
@@ -239,7 +391,8 @@ class FillingPatternFCT (PyTango.Device_4Impl):
     
     
         #----- PROTECTED REGION ID(FillingPatternFCT.initialize_dynamic_attributes) ENABLED START -----#
-        
+    def initialize_dynamic_attributes(self):
+        pass
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.initialize_dynamic_attributes
             
     def read_attr_hardware(self, data):
@@ -262,7 +415,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In Start()")
         #----- PROTECTED REGION ID(FillingPatternFCT.Start) ENABLED START -----#
-        
+        self._startCmd.set()
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Start
         
     def Stop(self):
@@ -274,7 +427,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         :rtype: PyTango.DevVoid """
         self.debug_stream("In Stop()")
         #----- PROTECTED REGION ID(FillingPatternFCT.Stop) ENABLED START -----#
-        
+        self._stopCmd.set()
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Stop
         
 
@@ -310,16 +463,22 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
 
     #    Device Properties
     device_property_list = {
-        'eventReceiverDevice':
+        'erDev':
             [PyTango.DevString,
+            "Event Receiver Device name",
             [] ],
         'FCTAttribute':
             [PyTango.DevString,
             "Channel of the scope from where the readings are get",
             [] ],
-        'scopeDevice':
+        'scoDev':
             [PyTango.DevString,
+            "Scope Device name where one channel has the FCT signal",
             [] ],
+        'AutoStart':
+            [PyTango.DevBoolean,
+            "Configure if the device must start the calculation by default when it is launched",
+            [True]],
         }
 
 

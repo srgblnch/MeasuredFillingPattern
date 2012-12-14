@@ -59,31 +59,119 @@
 META = u"""
     $URL: https://svn.code.sf.net/p/tango-ds/code/Servers/Calculation/FillingPatternFCT/src/BunchAnalyzer.py $
     $LastChangedBy: sergiblanch $
-    $Date: 2012-11-12 13:12:28 +0100 (Mon, 12 Nov 2012) $
-    $Rev: 5766 $
+    $Date: 2012-12-12 11:33:48 +0100 (Wed, 12 Dec 2012)$
+    $Rev: 5901 $
     License: GPL3+
     Author: Laura Torino
 """.encode('latin1')
 
-from scipy import *
 from numpy import *
-from pylab import *
-from matplotlib.pyplot import draw, figure, show
-from copy import copy, copy
+from copy import copy
 from scipy import signal
-import time
-import taurus
 import PyTango
-import datetime 
-import os, getopt
 
 class BunchAnalyzer:
-    def __init__(self):
-        self._timingProxy = PyTango.DeviceProxy("SR02/TI/EVR-CDI0203-A")
-        self._timingoutput = 0
-        self._delayTick = 18281216
-        self._threshold = 1
+    def __init__(self,parent=None,timingDevName=None,scopeDevName=None,
+                  timingoutput=0,delayTick=18281216,threashold=1,
+                  nAcquisitions=30,cyclicBuffer=None):
+        try:
+            self._parent=parent
+        except:
+            pass#TODO
+        try:
+            self._timingDevName = timingDevName
+            self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
+        except Exception,e:
+            pass#TODO
+        try:
+            self._scopeDevName = scopeDevName
+            self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
+        except Exception,e:
+            pass#TODO
+        self._timingoutput = timingoutput
+        self._delayTick = delayTick
+        self._threshold = threashold
+        self._nAcquisitions = nAcquisitions
+        self._cyclicBuffer = cyclicBuffer
 
+    ####
+    # Auxiliary setters and getters to modify the behaviour from the device server
+    def getTimingDevName(self):
+        return self._timingDevName
+    def getTimingDevice(self):
+        return self._timingProxy
+    def setTimingDevName(self,name):
+        self._timingDevName = name
+        self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
+    def getScopeDevName(self):
+        return self._scopeDevName
+    def getScopeDevice(self):
+        return self._scopeProxy
+    def setScopeDevName(self,name):
+        self._scopeDevName = name
+        self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
+    def getTimingoutput(self):
+        return self._timingoutput
+    def setTimingoutput(self,value):
+        self._timingoutput = value
+    def getDelayTick(self):
+        return self._delayTick
+    def setDelayTick(self,value):
+        self._delayTick = value
+    def getThreshold(self):
+        return self._threshold
+    def setThreshold(self,value):
+        self._threshold = value
+    def getNAcquisitions(self):
+        return self._nAcquisitions
+    def setNAcquisitions(self,value):
+        self._nAcquisitions = value
+    def getCyclicBuffer(self):
+        return self._cyclicBuffer
+    def setCyclicBuffer(self,buffer):
+        self._cyclicBuffer = buffer
+    # done auxiliary setters and getters to modify the behaviour from the device server
+    ####
+
+    ####
+    # auxiliary methods to manage events
+    def debug(self,msg):
+        try:
+            if self._parent:
+                self._parent.debug_stream(msg)
+            else:
+                print("debug: %s"%(msg))
+        except: print("cannot print in debug stream (%s)"%msg)
+    def subscribe_event(self,attrName):
+        self._scopeChAttrEvent = self._scopeProxy.subscribe_event(attrName,
+                                                                  PyTango.EventType.CHANGE_EVENT,
+                                                                  self)
+    def unsubscribe_event(self):
+        self._scopeProxy.unsubscribe_event(self._scopeChAttrEvent)
+        self._parent.change_state(PyTango.DevState.OFF)
+
+    #a callback method for the scope channel attribute
+    def push_event(self,event):
+        self.debug("PushEvent() %s: array of %d elements"%(event.attr_name,event.attr_value.value.size))
+        #populate the cyclicBuffer
+        self._cyclicBuffer.append(event.attr_value.value)
+        #state changes between STANDBY<->ON when the len(cyclicBuffer)<nAcquitions
+        bufLen = len(self._cyclicBuffer)
+        if bufLen < self._nAcquisitions and self._parent.get_state() != PyTango.DevState.STANDBY:
+            self._parent.change_state(PyTango.DevState.STANDBY)
+        elif bufLen == self._nAcquisitions and self._parent.get_state() != PyTango.DevState.ON:
+            self._parent.change_state(PyTango.DevState.ON)
+        else:
+            while len(self._cyclicBuffer) > self._nAcquisitions:
+                self._cyclicBuffer.pop(0)
+        self._parent.fireEventsList([['CyclicBuffer',self._cyclicBuffer,PyTango.AttrQuality.ATTR_CHANGING]])
+        #TODO: are there any scope attribute to reread when a new waveform is received?
+        #      or any that must be reread after N waveforms received
+    # done auxiliary methods to manage events
+    ####
+
+    ####
+    # original methods of the bunch analysis
     def delay(self):
         '''TODO: document this method'''
         #backup pulse params
@@ -226,6 +314,18 @@ class BunchAnalyzer:
             sp_bun = sp_bun + 1
     
         return sp_bun
+    # done original methods of the bunch analysis
+    ####
+# Done BunchAnalyser Class
+####
+
+#imports only used from the command line call
+from matplotlib.pyplot import figure, show
+import time
+from pylab import plt,savefig,xlabel,ylabel
+
+####
+# plot methods used when this is called by command line
 
 def plot1(x_data,y_data,y_Fil):
     #Plotting raw and filtered data
@@ -254,25 +354,29 @@ def plot3(p_to_p):
     plt.title("Peak to Peak")
     savefig('scope_peakTOpeakTimeWin.png') 
 
+# end plot methods
+####
+
 def main():
-    bunchAnalyzer = BunchAnalyzer()
+    bunchAnalyzer = BunchAnalyzer(timingDevName="SR02/TI/EVR-CDI0203-A",
+                                  scopeDevName="SR02/DI/sco-01")
 
     # Setting Offset and scale
-    taurus.Attribute('SR02/DI/sco-01/OffsetH').write(2e-07)
-    taurus.Attribute('SR02/DI/sco-01/ScaleH').write(1e-07)
+    PyTango.AttributeProxy('SR02/DI/sco-01/OffsetH').write(2e-07)
+    PyTango.AttributeProxy('SR02/DI/sco-01/ScaleH').write(1e-07)
     TimeDel = bunchAnalyzer.delay()
-    print "Offset: ", taurus.Attribute('SR02/DI/sco-01/OffsetH').read().value*1e9, " ns"
-    print "Scale: ", taurus.Attribute('SR02/DI/sco-01/ScaleH').read().value*1e9, " ns"
+    print "Offset: ", PyTango.AttributeProxy('SR02/DI/sco-01/OffsetH').read().value*1e9, " ns"
+    print "Scale: ", PyTango.AttributeProxy('SR02/DI/sco-01/ScaleH').read().value*1e9, " ns"
     print "Time delay: ", TimeDel
     
 
 
     # Usefull variables
     
-    SampRate = taurus.Attribute('SR02/DI/sco-01/CurrentSampleRate').read().value
+    SampRate = PyTango.AttributeProxy('SR02/DI/sco-01/CurrentSampleRate').read().value
     secperbin = 1./SampRate 
     CutOffFreq = 500
-    freq = taurus.Attribute('SR09/rf/sgn-01/Frequency').read().value
+    freq = PyTango.AttributeProxy('SR09/rf/sgn-01/Frequency').read().value
     time_win = int((1/freq)/secperbin)   
     Tot_Bucket = int(448*2*10**(-9)/secperbin)
     start = 907 #Starting point ~ 907 bin = 22.675 ns when Timing = 146351002 ns, OffsetH = 200 ns, ScaleH = 100 ns NOT WORKING IF THE BEAM IS UNSTABLE 
@@ -283,14 +387,14 @@ def main():
     ################################################# Loading and averaging  data ########################################
     
     n = 0
-    y = taurus.Attribute('sr02/di/sco-01/Channel1').read().value
+    y = PyTango.AttributeProxy('sr02/di/sco-01/Channel1').read().value
     time1 = time.time()
     y = y[0:Tot_Bucket+start+1]
     print "Data Acquisition..."
     time.sleep(0.1)
     for n in range(1,Ac_num):
         y_temp = []
-        y_temp =taurus.Attribute('sr02/di/sco-01/Channel1').read().value
+        y_temp =PyTango.AttributeProxy('sr02/di/sco-01/Channel1').read().value
         y_temp = y_temp[0:Tot_Bucket+start+1]
         y = y + y_temp
         time.sleep(0.1)
@@ -330,7 +434,7 @@ def main():
     
     print "Max peak to peak amplitude: ", max(P_to_P)
 
-    print "Average current: ", taurus.Attribute('SR/DI/DCCT/AverageCurrent').read().value, "mA"
+    print "Average current: ", PyTango.AttributeProxy('SR/DI/DCCT/AverageCurrent').read().value, "mA"
     
     show()
     
