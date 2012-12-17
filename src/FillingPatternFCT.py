@@ -63,6 +63,7 @@ META = u"""
     Author: Sergi Blanch
 """.encode('latin1')
 
+#FIXME: stablish default initial values
 DEFAULT_NACQUSITIONS = 30
 DEFAULT_STARTINGPOINT = 907
 DEFAULT_SCOPESAMPLERATE = 4.0e10
@@ -136,7 +137,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         return True
     def deleteThread(self):
         self.debug_stream("In %s::deleteThread(): Stoping acquisition threading."%self.get_name())
-        self.stopInstrument()
         if hasattr(self,'_joinerEvent'):
             self.debug_stream("In %s::deleteThread(): sending join event."%self.get_name())
             self._joinerEvent.set()
@@ -166,11 +166,11 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.change_state(PyTango.DevState.FAULT)
             self.addStatusMsg("Cannot build the analyzer",important=True)
             return
-#        try:
-#            self.readRfAttributes()
-#            self.readScopeAttributes()
-#        except:
-#            pass #TODO
+        try:
+            self.readRfAttributes()
+            self.readScopeAttributes()
+        except:
+            pass #TODO
         while not self._joinerEvent.isSet():
             #TODO: passive wait until no new data is available
             #FIXME: can this start with less samples in the buffer than the 
@@ -194,14 +194,22 @@ class FillingPatternFCT (PyTango.Device_4Impl):
                     if not self.get_state() in [PyTango.DevState.OFF]:
                         try:
                             self._bunchAnalyzer.unsubscribe_event()
+                            eventList = []
+                            eventList.append(['nAcquisitions',0])#,PyTango.AttrQuality.ATTR_INVALID])
+                            eventList.append(['CyclicBuffer',[[0]]])#,PyTango.AttrQuality.ATTR_INVALID])
+                            eventList.append(['BunchIntensity',[0]])#,PyTango.AttrQuality.ATTR_INVALID])
+                            eventList.append(['FilledBunches',0])#,PyTango.AttrQuality.ATTR_INVALID])
+                            eventList.append(['SpuriousBunches',0])#,PyTango.AttrQuality.ATTR_INVALID])
+                            eventList.append(['resultingFrequency',0])#,PyTango.AttrQuality.ATTR_INVALID])
+                            self.fireEventsList(eventList)
                         except Exception,e:
                             self.change_state(PyTango.DevState.FAULT)
                             self.addStatusMsg("Cannot unsubscribe to the FCT",important=True)
                             self.debug_stream("Cannot unsubscribe to the FCT due to: %s"%(e))
                 time.sleep(1)
                 #secundary attributes to read periodically and without events
-#                self.readRfAttributes()
-#                self.readScopeAttributes()
+                self.readRfAttributes()
+                self.readScopeAttributes()
             except Exception,e:
                 pass #TODO
             
@@ -275,6 +283,10 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.set_change_event('Status', True, False)
         self.set_change_event('cyclicBuffer',True,False)
         self.set_change_event('nAcquisitions',True,False)
+        self.set_change_event('BunchIntensity',True,False)
+        self.set_change_event('FilledBunches',True,False)
+        self.set_change_event('SpuriousBunches',True,False)
+        self.set_change_event('resultingFrequency',True,False)
         self.change_state(PyTango.DevState.OFF)
         #prepare the analyzer thread
         if self.createThread():
@@ -384,37 +396,29 @@ class FillingPatternFCT (PyTango.Device_4Impl):
     def read_FilledBunches(self, attr):
         self.debug_stream("In read_FilledBunches()")
         #----- PROTECTED REGION ID(FillingPatternFCT.FilledBunches_read) ENABLED START -----#
-        
-        #TODO
+        self.attr_FilledBunches_read = self._bunchAnalyzer.getFilledBunches()
         attr.set_value(self.attr_FilledBunches_read)
-        
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.FilledBunches_read
         
     def read_SpuriousBunches(self, attr):
         self.debug_stream("In read_SpuriousBunches()")
         #----- PROTECTED REGION ID(FillingPatternFCT.SpuriousBunches_read) ENABLED START -----#
-        
-        #TODO
+        self.attr_SpuriousBunches_read = self._bunchAnalyzer.getSpuriousBunches()
         attr.set_value(self.attr_SpuriousBunches_read)
-        
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.SpuriousBunches_read
         
     def read_resultingFrequency(self, attr):
         self.debug_stream("In read_resultingFrequency()")
         #----- PROTECTED REGION ID(FillingPatternFCT.resultingFrequency_read) ENABLED START -----#
-        
-        #TODO
+        self.attr_resultingFrequency_read = self._bunchAnalyzer.getResultingFrequency()
         attr.set_value(self.attr_resultingFrequency_read)
-        
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.resultingFrequency_read
         
     def read_BunchIntensity(self, attr):
         self.debug_stream("In read_BunchIntensity()")
         #----- PROTECTED REGION ID(FillingPatternFCT.BunchIntensity_read) ENABLED START -----#
-        
-        #TODO:
+        self.attr_BunchIntensity_read = self._bunchAnalyzer.getBunchIntensity()
         attr.set_value(self.attr_BunchIntensity_read)
-        
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.BunchIntensity_read
         
     def read_cyclicBuffer(self, attr):
@@ -588,7 +592,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
             PyTango.READ_WRITE],
             {
                 'description': "Number of elements in the cyclic buffer from where the calculation takes the data.",
-                'Memorized':"true_without_hard_applied"
+                'Memorized':"true"
             } ],
         'FilledBunches':
             [[PyTango.DevULong,
@@ -610,7 +614,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
         'BunchIntensity':
             [[PyTango.DevDouble,
             PyTango.SPECTRUM,
-            PyTango.READ, 500]],
+            PyTango.READ, 5000]],
         'cyclicBuffer':
             [[PyTango.DevDouble,
             PyTango.IMAGE,
