@@ -274,8 +274,8 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.attr_BunchIntensity_read = [0.0]
         self.attr_cyclicBuffer_read = [[0.0]]
         #----- PROTECTED REGION ID(FillingPatternFCT.init_device) ENABLED START -----#
-        self.attr_nAcquisitions_read = DEFAULT_NACQUSITIONS
-        self.attr_StartingPoint_read = DEFAULT_STARTINGPOINT
+        #self.attr_nAcquisitions_read = DEFAULT_NACQUSITIONS
+        #self.attr_StartingPoint_read = DEFAULT_STARTINGPOINT
         self.CurrentSampleRate = DEFAULT_SCOPESAMPLERATE
         self._important_logs = []
         #prepare attributes that will have events
@@ -565,7 +565,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
             PyTango.READ_WRITE],
             {
                 'Display level': PyTango.DispLevel.EXPERT,
-                'Memorized':"true_without_hard_applied"
+                'Memorized':"true"
             } ],
         'Threshold':
             [[PyTango.DevDouble,
