@@ -100,6 +100,7 @@ class BunchAnalyzer:
         #outputs
         self._filledBunches = 0
         self._spuriousBunches = 0
+        self._yFiltered = []
         self._bunchIntensity = []
         self._resultingFrequency = 0
 
@@ -252,13 +253,13 @@ class BunchAnalyzer:
         #the calculation itself
         try:
 #            self.debug("input to lowPassFilter = %s"%(y.tolist()))
-            self._bunchIntensity = self.lowPassFilter(SampRate, time_win, start,
+            self._yFiltered = self.lowPassFilter(SampRate, time_win, start,
                                                       CutOffFreq, x, y, secperbin)
-            self.debug("len(BunchIntensity) = %d"%(len(self._bunchIntensity)))
-            P_to_P = self.peakToPeak(time_win, x)
-            self._filledBunches = self.bunchCount(P_to_P)
+            self.debug("len(BunchIntensity) = %d"%(len(self._yFiltered)))
+            self._bunchIntensity = self.peakToPeak(time_win, x)
+            self._filledBunches = self.bunchCount(self._bunchIntensity)
             self.debug("FilledBunches = %d"%self._filledBunches)
-            self._spuriousBunches = self.spuriousBunches(P_to_P)
+            self._spuriousBunches = self.spuriousBunches(self._bunchIntensity)
             self.debug("SpuriousBunches = %d"%self._spuriousBunches)
             #emit output events
             eventList = []
@@ -361,7 +362,7 @@ class BunchAnalyzer:
         '''TODO: document this method'''
         #FIXME: parameters would be in side the class?
         if y_Fil == None:
-            y_Fil = self._bunchIntensity
+            y_Fil = self._yFiltered
         p_to_p = [] 
         k = 0 
         Start = 0
