@@ -65,6 +65,7 @@ META = u"""
     Author: Laura Torino
 """.encode('latin1')
 
+import time
 from numpy import *
 from copy import copy,deepcopy
 from scipy import signal
@@ -196,7 +197,14 @@ class BunchAnalyzer:
 
     #a callback method for the scope channel attribute
     def push_event(self,event):
-        self.debug("PushEvent() %s: array of %d elements"%(event.attr_name,event.attr_value.value.size))
+        try:
+            if event != None:
+                if event.attr_value != None and event.attr_value.value != None:
+                    self.debug("PushEvent() %s: array of %d elements"%(event.attr_name,event.attr_value.value.size))
+                else:
+                    self.debug("PushEvent() %s: value has None type"%(event.attr_name))
+        except Exception,e:
+            self.error("PushEvent() exception %s:"%(e))
         #timestamps when this starts
         t0 = time.time()
         eventList = []
@@ -475,9 +483,10 @@ class BunchAnalyzer:
 ####
 
 #imports only used from the command line call
-from matplotlib.pyplot import figure, show
-import time
-from pylab import plt,savefig,xlabel,ylabel
+try:#The try is necessary by the Tango device
+    from matplotlib.pyplot import figure, show
+    from pylab import plt,savefig,xlabel,ylabel
+except: pass
 
 ####
 # plot methods used when this is called by command line

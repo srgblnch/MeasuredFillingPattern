@@ -220,7 +220,9 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         for attrEvent in eventsAttrList:
             try:
                 self.debug_stream("In %s::fireEventsList() attribute: %s"%(self.get_name(),attrEvent[0]))
-                if len(attrEvent) == 3:#specifies quality
+                if attrEvent[0] in ['CyclicBuffer'] and not self.attr_emitCyclicBuffer_read:
+                    self.debug_stream("In %s::fireEventsList() attribute: %s avoided to emit the event duo to flag."%(self.get_name(),attrEvent[0]))
+                elif len(attrEvent) == 3:#specifies quality
                     self.push_change_event(attrEvent[0],attrEvent[1],timestamp,attrEvent[2])
                 else:
                     self.push_change_event(attrEvent[0],attrEvent[1],timestamp,PyTango.AttrQuality.ATTR_VALID)
@@ -271,6 +273,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.attr_FilledBunches_read = 0
         self.attr_SpuriousBunches_read = 0
         self.attr_resultingFrequency_read = 0.0
+        self.attr_emitCyclicBuffer_read = False
         self.attr_BunchIntensity_read = [0.0]
         self.attr_cyclicBuffer_read = [[0.0]]
         #----- PROTECTED REGION ID(FillingPatternFCT.init_device) ENABLED START -----#
@@ -413,6 +416,20 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.attr_resultingFrequency_read = self._bunchAnalyzer.getResultingFrequency()
         attr.set_value(self.attr_resultingFrequency_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.resultingFrequency_read
+        
+    def read_emitCyclicBuffer(self, attr):
+        self.debug_stream("In read_emitCyclicBuffer()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.emitCyclicBuffer_read) ENABLED START -----#
+        attr.set_value(self.attr_emitCyclicBuffer_read)
+        
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.emitCyclicBuffer_read
+        
+    def write_emitCyclicBuffer(self, attr):
+        self.debug_stream("In write_emitCyclicBuffer()")
+        data=attr.get_write_value()
+        #----- PROTECTED REGION ID(FillingPatternFCT.emitCyclicBuffer_write) ENABLED START -----#
+        self.attr_emitCyclicBuffer_read = bool(data)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.emitCyclicBuffer_write
         
     def read_BunchIntensity(self, attr):
         self.debug_stream("In read_BunchIntensity()")
@@ -610,6 +627,15 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'unit': "Hz",
                 'description': "Expert attribute to read the frequency with this device is pushing results in the output",
                 'Display level': PyTango.DispLevel.EXPERT,
+            } ],
+        'emitCyclicBuffer':
+            [[PyTango.DevBoolean,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE],
+            {
+                'description': "This boolean attribute is to allow or not to emit the events on the cyclic Buffer. This is because it can cause delay dou to be too big buffer",
+                'Display level': PyTango.DispLevel.EXPERT,
+                'Memorized':"true"
             } ],
         'BunchIntensity':
             [[PyTango.DevDouble,
