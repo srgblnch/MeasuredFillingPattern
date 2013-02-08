@@ -66,7 +66,7 @@ META = u"""
 #FIXME: stablish default initial values
 DEFAULT_NACQUSITIONS = 30
 DEFAULT_STARTINGPOINT = 907
-DEFAULT_SCOPESAMPLERATE = 4.0e10
+DEFAULT_SCOPESAMPLERATE = 40.0e10
 
 #----- PROTECTED REGION END -----#	//	FillingPatternFCT.additionnal_import
 
@@ -168,9 +168,9 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             return
         try:
             self.readRfAttributes()
-            self.readScopeAttributes()
         except:
-            pass #TODO
+            self.debug_stream("Exception reading RF attrs")
+        self.readScopeAttributes()
         while not self._joinerEvent.isSet():
             #TODO: passive wait until no new data is available
             #FIXME: can this start with less samples in the buffer than the 
@@ -236,14 +236,16 @@ class FillingPatternFCT (PyTango.Device_4Impl):
 
     def readScopeAttributes(self):
         try:
-            attrs = self._bunchAnalyzer.getScopeDevice().read_attributes('CurrentSampleRate',
+            attrs = self._bunchAnalyzer.getScopeDevice().read_attributes(['CurrentSampleRate',
                                                                          'ScaleH',
-                                                                         'OffsetH')
-            self.scopeSampleRate = self._bunchAnalyzer.setScopeSampleRate(attrs[0].read().value)
-            self.attr_ScaleH_read = attrs[1].read().value
-            self.attr_OffsetH_read = attrs[2].read().value
-        except:
-            pass
+                                                                         'OffsetH'])
+            self.debug_stream("SampleRate = %f"%attrs[0].value)
+            self._bunchAnalyzer.setScopeSampleRate(attrs[0].value)
+            self.scopeSampleRate = self._bunchAnalyzer.getScopeSampleRate()
+            self.attr_ScaleH_read = attrs[1].value
+            self.attr_OffsetH_read = attrs[2].value
+        except Exception,e:
+            self.debug_stream("Exception reading Scope attrs: %s"%e)
 
     #----- PROTECTED REGION END -----#	//	FillingPatternFCT.global_variables
 
