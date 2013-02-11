@@ -75,7 +75,8 @@ class BunchAnalyzer:
     def __init__(self,parent=None,timingDevName=None,scopeDevName=None,
                   timingoutput=0,delayTick=18281216,threashold=1,
                   nAcquisitions=30,cyclicBuffer=None,
-                  startingPoint=906,scopeSampleRate=4.0e9):
+                  startingPoint=906,scopeSampleRate=4.0e9,
+                  max_cyclicBuf=250,alarm_cyclicBuf=50):
         self._parent=parent
         try:
             self._timingDevName = timingDevName
@@ -97,7 +98,8 @@ class BunchAnalyzer:
         self._startingPoint = startingPoint
         self._scopeSampleRate = scopeSampleRate
         self._rfFrequency = 499650374.85
-        
+        self.__max_cyclicBuf = max_cyclicBuf
+        self.__alarm_cyclicBuf = alarm_cyclicBuf
         #outputs
         self._filledBunches = 0
         self._spuriousBunches = 0
@@ -216,14 +218,20 @@ class BunchAnalyzer:
             if not self._parent.get_state() in [PyTango.DevState.STANDBY,
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.STANDBY)
-            eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_CHANGING])
+            if bufLen >= self.__alarm_cyclicBuf:
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_ALARM])
+            else:
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_CHANGING])
         else:
             while len(self._cyclicBuffer) > self._nAcquisitions:
                 self._cyclicBuffer.pop(0)
             if not self._parent.get_state() in [PyTango.DevState.ON,
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.ON)
-            eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_VALID])
+            if len(self._cyclicBuffer) >= self.__alarm_cyclicBuf:
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_ALARM])
+            else:
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_VALID])
         eventList.append(['CyclicBuffer',self._cyclicBuffer,PyTango.AttrQuality.ATTR_CHANGING])
         self._parent.fireEventsList(eventList)
         #TODO: are there any scope attribute to reread when a new waveform is received?

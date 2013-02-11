@@ -67,6 +67,8 @@ META = u"""
 DEFAULT_NACQUSITIONS = 30
 DEFAULT_STARTINGPOINT = 907
 DEFAULT_SCOPESAMPLERATE = 40.0e10
+MAX_SIZE_CYCLIC_BUFFER = 250
+ALARM_SIZE_CYCLIC_BUFFER = 50
 
 #----- PROTECTED REGION END -----#	//	FillingPatternFCT.additionnal_import
 
@@ -385,7 +387,9 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FillingPatternFCT.nAcquisitions_read) ENABLED START -----#
         lenBuf = len(self._bunchAnalyzer.getCyclicBuffer())
         self.attr_nAcquisitions_read = self._bunchAnalyzer.getNAcquisitions()
-        if lenBuf < self.attr_nAcquisitions_read:
+        if lenBuf > ALARM_SIZE_CYCLIC_BUFFER:
+            attr.set_value_date_quality(lenBuf,time.time(),PyTango.AttrQuality.ATTR_ALARM)
+        elif lenBuf < self.attr_nAcquisitions_read:
             attr.set_value_date_quality(lenBuf,time.time(),PyTango.AttrQuality.ATTR_CHANGING)
         else:
             attr.set_value(self.attr_nAcquisitions_read)
@@ -395,6 +399,9 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.debug_stream("In write_nAcquisitions()")
         data=attr.get_write_value()
         #----- PROTECTED REGION ID(FillingPatternFCT.nAcquisitions_write) ENABLED START -----#
+        if int(data) > MAX_SIZE_CYCLIC_BUFFER:
+            PyTango.Except.throw_exception("maximum reached",
+                                           "The maximum size of buffer is reached", "nAquisitions", sever=PyTango_ErrSeverity_ERR)
         self._bunchAnalyzer.setNAcquisitions(int(data))
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nAcquisitions_write
         
@@ -649,7 +656,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
         'cyclicBuffer':
             [[PyTango.DevDouble,
             PyTango.IMAGE,
-            PyTango.READ, 40000, 50],
+            PyTango.READ, 40000, MAX_SIZE_CYCLIC_BUFFER],
             {
                 'description': "Expert attribute to be able to check the cyclic buffer evolution",
                 'Display level': PyTango.DispLevel.EXPERT,
