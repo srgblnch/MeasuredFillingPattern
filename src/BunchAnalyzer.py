@@ -311,7 +311,7 @@ class BunchAnalyzer:
         pulse_params = self._timingProxy.command_inout("GetPulseParams", self._timingoutput)
         pulse_params = [int(i) for i in pulse_params]
         if (pulse_params[1] != self._delayTick):
-            pulse_params = self._timingProxy.command_inout("GetPulseParams", output)
+            pulse_params = self._timingProxy.command_inout("GetPulseParams", self._timingoutput)
             pulse_params = [int(i) for i in pulse_params] #command returns numpy array
             pulse_params[1] = self._delayTick
             pulse_params = [self._timingoutput] + pulse_params
