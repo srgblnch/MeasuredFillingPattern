@@ -401,7 +401,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FillingPatternFCT.nAcquisitions_write) ENABLED START -----#
         if int(data) > MAX_SIZE_CYCLIC_BUFFER:
             PyTango.Except.throw_exception("maximum reached",
-                                           "The maximum size of buffer is reached", "nAquisitions", sever=PyTango_ErrSeverity_ERR)
+                                           "The maximum size of buffer is reached", "nAquisitions", sever=PyTango.ErrSeverity.ERR)
         self._bunchAnalyzer.setNAcquisitions(int(data))
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nAcquisitions_write
         
