@@ -564,6 +564,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
             PyTango.READ_WRITE],
             {
                 'unit': "s",
+                'format': "%3.9f",
                 'description': "Oscilloscope Horizontal Offset",
                 'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
@@ -574,6 +575,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
             PyTango.READ_WRITE],
             {
                 'unit': "s/div",
+                'format': "%3.9f",
                 'description': "Oscilloscope Horizontal Scale",
                 'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
@@ -627,6 +629,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
             PyTango.READ],
             {
                 'unit': "Hz",
+                'format': "%3.3f",
                 'description': "Expert attribute to read the frequency with this device is pushing results in the output",
                 'Display level': PyTango.DispLevel.EXPERT,
             } ],
