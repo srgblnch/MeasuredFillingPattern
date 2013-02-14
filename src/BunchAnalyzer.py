@@ -385,10 +385,10 @@ class BunchAnalyzer:
         Av = sum(y_Fil)/len(y_Fil)
         #Analysis
         self.debug("Data analysis")
-        while (Start < len(y_Fil)-1):
+        while (Start <= len(y_Fil)):
             k = 0
             time_win_ar = [] #Array that leasts the considered time window
-            if (Start + Time_Window < len(y_Fil)-1):
+            if (Start + Time_Window <= len(y_Fil)):
                 for k in range(0, Time_Window):
                     time_win_ar.append(y_Fil[Start+k])
                 if (max(time_win_ar) > Av and min(time_win_ar) > Av):
