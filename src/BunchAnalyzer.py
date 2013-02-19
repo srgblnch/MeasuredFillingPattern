@@ -272,7 +272,8 @@ class BunchAnalyzer:
             self._yFiltered = self.lowPassFilter(SampRate, time_win, start,
                                                       CutOffFreq, x, y, secperbin)
             self.debug("len(BunchIntensity) = %d"%(len(self._yFiltered)))
-            self._bunchIntensity = self.peakToPeak(time_win, x)
+            p_to_p = self.peakToPeak(time_win, x)
+            self._bunchIntensity = p_to_p/max(p_to_p)
             self._filledBunches = self.bunchCount(self._bunchIntensity)
             self.debug("FilledBunches = %d"%self._filledBunches)
             self._spuriousBunches = self.spuriousBunches(self._bunchIntensity)
@@ -385,10 +386,10 @@ class BunchAnalyzer:
         Av = sum(y_Fil)/len(y_Fil)
         #Analysis
         self.debug("Data analysis")
-        while (Start <= len(y_Fil)):
+        while (Start < len(y_Fil)-1):
             k = 0
             time_win_ar = [] #Array that leasts the considered time window
-            if (Start + Time_Window <= len(y_Fil)):
+            if (Start + Time_Window < len(y_Fil)-1):
                 for k in range(0, Time_Window):
                     time_win_ar.append(y_Fil[Start+k])
                 if (max(time_win_ar) > Av and min(time_win_ar) > Av):
@@ -588,7 +589,7 @@ def main():
     
     bunchAnalyzer._threshold = input('Threshold (%): ')
     P_to_P = bunchAnalyzer.peakToPeak(time_win, x, y_fil)
-    plot3(P_to_P)
+    plot3(P_to_P/max(P_to_P))
     
     ################################################ Bunch Counting #########################################################
     
