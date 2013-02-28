@@ -67,7 +67,7 @@ META = u"""
 DEFAULT_NACQUSITIONS = 30
 DEFAULT_STARTINGPOINT = 907
 DEFAULT_SCOPESAMPLERATE = 40.0e10
-MAX_SIZE_CYCLIC_BUFFER = 250
+MAX_SIZE_CYCLIC_BUFFER = 100
 ALARM_SIZE_CYCLIC_BUFFER = 50
 
 #----- PROTECTED REGION END -----#	//	FillingPatternFCT.additionnal_import
@@ -202,6 +202,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
                             eventList.append(['BunchIntensity',[0]])#,PyTango.AttrQuality.ATTR_INVALID])
                             eventList.append(['FilledBunches',0])#,PyTango.AttrQuality.ATTR_INVALID])
                             eventList.append(['SpuriousBunches',0])#,PyTango.AttrQuality.ATTR_INVALID])
+                            eventList.append(['nBunches',0])#,PyTango.AttrQuality.ATTR_INVALID])
                             eventList.append(['resultingFrequency',0])#,PyTango.AttrQuality.ATTR_INVALID])
                             self.fireEventsList(eventList)
                         except Exception,e:
@@ -278,6 +279,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.attr_SpuriousBunches_read = 0
         self.attr_resultingFrequency_read = 0.0
         self.attr_emitCyclicBuffer_read = False
+        self.attr_nBunches_read = 0
         self.attr_BunchIntensity_read = [0.0]
         self.attr_cyclicBuffer_read = [[0.0]]
         #----- PROTECTED REGION ID(FillingPatternFCT.init_device) ENABLED START -----#
@@ -293,6 +295,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.set_change_event('BunchIntensity',True,False)
         self.set_change_event('FilledBunches',True,False)
         self.set_change_event('SpuriousBunches',True,False)
+        self.set_change_event('nBunches',True,False)
         self.set_change_event('resultingFrequency',True,False)
         self.change_state(PyTango.DevState.OFF)
         #prepare the analyzer thread
@@ -412,6 +415,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FillingPatternFCT.FilledBunches_read) ENABLED START -----#
         self.attr_FilledBunches_read = self._bunchAnalyzer.getFilledBunches()
         attr.set_value(self.attr_FilledBunches_read)
+        
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.FilledBunches_read
         
     def read_SpuriousBunches(self, attr):
@@ -441,6 +445,15 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FillingPatternFCT.emitCyclicBuffer_write) ENABLED START -----#
         self.attr_emitCyclicBuffer_read = bool(data)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.emitCyclicBuffer_write
+        
+    def read_nBunches(self, attr):
+        self.debug_stream("In read_nBunches()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.nBunches_read) ENABLED START -----#
+        self.attr_nBunches_read = self._bunchAnalyzer.getFilledBunches()-\
+                                  self._bunchAnalyzer.getSpuriousBunches()
+        attr.set_value(self.attr_nBunches_read)
+        
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nBunches_read
         
     def read_BunchIntensity(self, attr):
         self.debug_stream("In read_BunchIntensity()")
@@ -590,7 +603,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'Memorized':"true"
             } ],
         'StartingPoint':
-            [[PyTango.DevLong64,
+            [[PyTango.DevULong,
             PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
@@ -651,6 +664,13 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
             } ],
+        'nBunches':
+            [[PyTango.DevULong,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Number of Bunches",
+            } ],
         'BunchIntensity':
             [[PyTango.DevDouble,
             PyTango.SPECTRUM,
@@ -658,7 +678,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
         'cyclicBuffer':
             [[PyTango.DevDouble,
             PyTango.IMAGE,
-            PyTango.READ, 40000, MAX_SIZE_CYCLIC_BUFFER],
+            PyTango.READ, 40000, 50],
             {
                 'description': "Expert attribute to be able to check the cyclic buffer evolution",
                 'Display level': PyTango.DispLevel.EXPERT,

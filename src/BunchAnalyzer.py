@@ -100,6 +100,7 @@ class BunchAnalyzer:
         self._rfFrequency = 499650374.85
         self.__max_cyclicBuf = max_cyclicBuf
         self.__alarm_cyclicBuf = alarm_cyclicBuf
+        
         #outputs
         self._filledBunches = 0
         self._spuriousBunches = 0
@@ -243,9 +244,10 @@ class BunchAnalyzer:
         SampRate = self._scopeSampleRate
         self.debug("SampRate = %f"%(SampRate))
         secperbin = 1./SampRate
-        self.debug("secperbin = %f"%(secperbin))
+        self.debug("secperbin = %12.12f"%(secperbin))
         CutOffFreq = 500#FIXME: would be this variable?
         freq = self._rfFrequency
+        self.debug("RF freq = %f"%(freq))
         time_win = int((1/freq)/secperbin)
         self.debug("time_win = %d"%(time_win))
         Tot_Bucket = int(448*2*10**(-9)/secperbin)
@@ -271,9 +273,14 @@ class BunchAnalyzer:
 #            self.debug("input to lowPassFilter = %s"%(y.tolist()))
             self._yFiltered = self.lowPassFilter(SampRate, time_win, start,
                                                       CutOffFreq, x, y, secperbin)
-            self.debug("len(BunchIntensity) = %d"%(len(self._yFiltered)))
-            p_to_p = self.peakToPeak(time_win, x)
-            self._bunchIntensity = p_to_p/max(p_to_p)
+            #print(time_win)
+            p2p = self.peakToPeak(time_win, x)
+            #FIXME: better to subscribe
+            current = PyTango.AttributeProxy('SR/DI/DCCT/AverageCurrent').read().value
+            #FIXME: use the new attr 
+            nBunches = self._filledBunches-self._spuriousBunches
+            self._bunchIntensity = ((p2p/max(p2p))*current)/(nBunches)
+            self.debug("len(_bunchIntensity) = %d"%(len(self._bunchIntensity)))
             self._filledBunches = self.bunchCount(self._bunchIntensity)
             self.debug("FilledBunches = %d"%self._filledBunches)
             self._spuriousBunches = self.spuriousBunches(self._bunchIntensity)
@@ -283,6 +290,7 @@ class BunchAnalyzer:
             eventList.append(['BunchIntensity',self._bunchIntensity])
             eventList.append(['FilledBunches',self._filledBunches])
             eventList.append(['SpuriousBunches',self._spuriousBunches])
+            eventList.append(['nBunches',self._filledBunches-self._spuriousBunches])
             #self._parent.fireEventsList(eventList)
             #time stamps when this finish to know: how long it has take,
             tf = time.time()
@@ -386,10 +394,10 @@ class BunchAnalyzer:
         Av = sum(y_Fil)/len(y_Fil)
         #Analysis
         self.debug("Data analysis")
-        while (Start < len(y_Fil)-1):
+        while (Start <= len(y_Fil)):
             k = 0
             time_win_ar = [] #Array that leasts the considered time window
-            if (Start + Time_Window < len(y_Fil)-1):
+            if (Start + Time_Window <= len(y_Fil)):
                 for k in range(0, Time_Window):
                     time_win_ar.append(y_Fil[Start+k])
                 if (max(time_win_ar) > Av and min(time_win_ar) > Av):
@@ -402,7 +410,7 @@ class BunchAnalyzer:
         #thr = input('Threshold (%): ')
         thr = self._threshold
         thr = thr*0.01
-        for i in range (0, len(p_to_p)-1):
+        for i in range (len(p_to_p)-1):
             if (p_to_p[i] < thr*Max): #Threshold set at 1% of the maximum peak to peak amplitude
                 p_to_p[i] = 0
         if (len(p_to_p) == 0):
