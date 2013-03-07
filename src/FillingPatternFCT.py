@@ -157,26 +157,29 @@ class FillingPatternFCT (PyTango.Device_4Impl):
 #        self.addStatusMsg("Starting buffer population")
         #Build the analyzer object
         try:
+            time.sleep(1)
+            self.debug_stream("Build BunchAnalyser instance")
             self._bunchAnalyzer = BunchAnalyzer(parent=self,
                                                 timingDevName=self.erDev,
                                                 delayTick=self.attr_TimingTrigger_read,
                                                 scopeDevName=self.scoDev,
                                                 cyclicBuffer=self.attr_cyclicBuffer_read,
-                                                threashold=self.attr_Threshold_read,
+                                                threshold=self.attr_Threshold_write,
                                                 nAcquisitions=self.attr_nAcquisitions_write,
                                                 startingPoint=self.attr_StartingPoint_write,
                                                 max_cyclicBuf=MAX_SIZE_CYCLIC_BUFFER,
                                                 alarm_cyclicBuf=ALARM_SIZE_CYCLIC_BUFFER)
+            self.debug_stream("Build BunchAnalyser made")
             self.attr_TimingTrigger_read = self._bunchAnalyzer.DelayTick()
         except:
             self.change_state(PyTango.DevState.FAULT)
             self.addStatusMsg("Cannot build the analyzer",important=True)
             return
-        try:
-            self.readRfAttributes()
-        except:
-            self.debug_stream("Exception reading RF attrs")
-        self.readScopeAttributes()
+#        try:
+#            self.readRfAttributes()
+#        except:
+#            self.debug_stream("Exception reading RF attrs")
+#        self.readScopeAttributes()
         while not self._joinerEvent.isSet():
             #TODO: passive wait until no new data is available
             #FIXME: can this start with less samples in the buffer than the 
@@ -215,10 +218,10 @@ class FillingPatternFCT (PyTango.Device_4Impl):
                             self.debug_stream("Cannot unsubscribe to the FCT due to: %s"%(e))
                 time.sleep(1)
                 #secundary attributes to read periodically and without events
-                self.readRfAttributes()
-                self.readScopeAttributes()
+#                self.readRfAttributes()
+#                self.readScopeAttributes()
             except Exception,e:
-                pass #TODO
+                self.error_stream("In %s::analyzerThread(): Exception: %s"%(self.get_name(),e))
             
     def fireEventsList(self,eventsAttrList):
         #self.debug_stream("In %s::fireEventsList()"%self.get_name())
@@ -237,22 +240,25 @@ class FillingPatternFCT (PyTango.Device_4Impl):
                 self.error_stream("In %s::fireEventsList() Exception with attribute %s"%(self.get_name(),attrEvent[0]))
                 print e
 
-    def readRfAttributes(self):
-        #if more than one, use read attributes
-        self._bunchAnalyzer.RfFrequency(PyTango.AttributeProxy(self.RfGeneratorDev+'/Frequency').read().value)
+#    def readRfAttributes(self):
+#        #if more than one, use read attributes
+#        if self._bunchAnalyzer != None:
+#            self._bunchAnalyzer.RfFrequency(PyTango.AttributeProxy(self.RfGeneratorDev+'/Frequency').read().value)
 
-    def readScopeAttributes(self):
-        try:
-            attrs = self._bunchAnalyzer.ScopeDevice().read_attributes(['CurrentSampleRate',
-                                                                       'ScaleH',
-                                                                       'OffsetH'])
-            self.debug_stream("SampleRate = %f"%attrs[0].value)
-            self._bunchAnalyzer.ScopeSampleRate(attrs[0].value)
-            self.scopeSampleRate = self._bunchAnalyzer.ScopeSampleRate()
-            self.attr_ScaleH_read = attrs[1].value
-            self.attr_OffsetH_read = attrs[2].value
-        except Exception,e:
-            self.debug_stream("Exception reading Scope attrs: %s"%e)
+#    def readScopeAttributes(self):
+#        if self._bunchAnalyzer != None:
+#            try:
+#                device = self._bunchAnalyzer.ScopeDevice()
+#                attrs = device.read_attributes(['CurrentSampleRate',
+#                                                'ScaleH',
+#                                                'OffsetH'])
+#                self.debug_stream("SampleRate = %f"%attrs[0].value)
+#                self._bunchAnalyzer.ScopeSampleRate(attrs[0].value)
+#                self.scopeSampleRate = self._bunchAnalyzer.ScopeSampleRate()
+#                self.attr_ScaleH_read = attrs[1].value
+#                self.attr_OffsetH_read = attrs[2].value
+#            except Exception,e:
+#                self.debug_stream("Exception reading Scope attrs: %s"%e)
 
     #----- PROTECTED REGION END -----#	//	FillingPatternFCT.global_variables
 
@@ -289,7 +295,9 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(FillingPatternFCT.init_device) ENABLED START -----#
         self.attr_nAcquisitions_write = DEFAULT_NACQUSITIONS
         self.attr_StartingPoint_write = DEFAULT_STARTINGPOINT
+        self.attr_Threshold_write = 0.0
         self.CurrentSampleRate = DEFAULT_SCOPESAMPLERATE
+        self._bunchAnalyzer = None
         self._important_logs = []
         #prepare attributes that will have events
         self.set_change_event('State', True, False)
@@ -377,12 +385,23 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.debug_stream("In write_StartingPoint()")
         data=attr.get_write_value()
         #----- PROTECTED REGION ID(FillingPatternFCT.StartingPoint_write) ENABLED START -----#
+        if self._bunchAnalyzer != None and \
+           int(data) > self._bunchAnalyzer.ScopeSampleRate():
+            PyTango.Except.throw_exception("maximum reached",
+                                           "This value cannot be bigger than the waveform lenght",
+                                           "StartingPoint",
+                                           PyTango.ErrSeverity.ERR)
+        if int(data) < 0:
+            PyTango.Except.throw_exception("minimum reached",
+                                           "This value must be positive",
+                                           "StartingPoint",
+                                           PyTango.ErrSeverity.ERR)
         self.attr_StartingPoint_read = int(data)
         self.attr_StartingPoint_write = int(data)
         try:
-            self._bunchAnalyzer.StartingPoint(self.attr_StartingPoint_read)
+            self._bunchAnalyzer.StartingPoint(self.attr_StartingPoint_write)
         except:
-            self.warn_stream("In write_nAcquisitions() cannot set in BunchAnalyzer()")
+            self.warn_stream("In write_StartingPoint() cannot set in BunchAnalyzer()")
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.StartingPoint_write
         
     def read_Threshold(self, attr):
@@ -399,9 +418,20 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.debug_stream("In write_Threshold()")
         data=attr.get_write_value()
         #----- PROTECTED REGION ID(FillingPatternFCT.Threshold_write) ENABLED START -----#
+        if float(data) > 100:
+            PyTango.Except.throw_exception("maximum reached",
+                                           "This value is a percentage",
+                                           "Threshold",
+                                           PyTango.ErrSeverity.ERR)
+        if float(data) < 0:
+            PyTango.Except.throw_exception("minimum reached",
+                                           "This value must be positive",
+                                           "Threshold",
+                                           PyTango.ErrSeverity.ERR)
         self.attr_Threshold_read = float(data)
+        self.attr_Threshold_write = float(data)
         try:
-            self._bunchAnalyzer.Threshold(self.attr_Threshold_read)
+            self._bunchAnalyzer.Threshold(self.attr_Threshold_write)
         except:
             self.warn_stream("In write_Threshold() cannot set in BunchAnalyzer()")
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Threshold_write
@@ -452,10 +482,15 @@ class FillingPatternFCT (PyTango.Device_4Impl):
                                            "The maximum size of buffer is reached",
                                            "nAquisitions",
                                            PyTango.ErrSeverity.ERR)
+        if int(data) < 0:
+            PyTango.Except.throw_exception("minimum reached",
+                                           "This value must be positive",
+                                           "nAquisitions",
+                                           PyTango.ErrSeverity.ERR)
         self.attr_nAcquisitions_read = int(data)
         self.attr_nAcquisitions_write = int(data)
         try:
-            self._bunchAnalyzer.NAcquisitions(int(data))
+            self._bunchAnalyzer.NAcquisitions(self.attr_nAcquisitions_write)
         except:
             self.warn_stream("In write_nAcquisitions() cannot set in BunchAnalyzer()")
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nAcquisitions_write
@@ -670,7 +705,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'Memorized':"true"
             } ],
         'StartingPoint':
-            [[PyTango.DevULong,
+            [[PyTango.DevLong,
             PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
@@ -685,7 +720,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'unit': "%",
                 'max value': "100",
                 'min value': "0",
-                'Memorized':"true_without_hard_applied"
+                'Memorized':"true"
             } ],
         'TimingTrigger':
             [[PyTango.DevULong,

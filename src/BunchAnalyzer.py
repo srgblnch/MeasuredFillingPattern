@@ -131,13 +131,16 @@ class Attribute:
     def getValue(self):
         return self.__attrValue
     def setValue(self,value):
-        self.__devProxy[self.__attrName] = value
+        try:
+            self.__devProxy[self.__attrName] = value
+        except:
+            self.warn("This is not a write value")
 
 class BunchAnalyzer:
     def __init__(self,parent=None,
                   timingDevName=None,timingoutput=0,delayTick=18281216,
                   scopeDevName=None,cyclicBuffer=[],
-                  threashold=1,nAcquisitions=30,startingPoint=906,
+                  threshold=1,nAcquisitions=30,startingPoint=906,
                   max_cyclicBuf=100,alarm_cyclicBuf=50):
         self._parent=parent
         #---- timing
@@ -155,27 +158,37 @@ class BunchAnalyzer:
             self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
             self._scopeSampleRate = Attribute(devName=scopeDevName,
                                               attrName='CurrentSampleRate',
-                                              callback=self.cbScopeSampleRate)
+                                              callback=self.cbScopeSampleRate,
+                                              debug_stream=self.debug,
+                                              warn_stream=self.warn,
+                                              error_stream=self.error)
             #TODO: replace the current subscription to the channel1
         except Exception,e:
+            self.error("BunchAnalyzer.__init__() exception: %s"%(e))
             self._scopeDevName = ""
             self._scopeProxy = None
             self._scopeSampleRate = None
         #---- RF
         try:
             self._rfFrequency = Attribute(devName='SR09/rf/sgn-01',#FIXME: avoid hardcoding
-                                          attrName='Frequency')
+                                          attrName='Frequency',
+                                          debug_stream=self.debug,
+                                          warn_stream=self.warn,
+                                          error_stream=self.error)
         except Exception,e:
             self._rfFrequency = None#499650374.85
         #---- dcct
         try:
             self._currentAttr = Attribute(devName='SR/DI/DCCT',#FIXME: avoid hardcoding
-                                          attrName='AverageCurrent')
+                                          attrName='AverageCurrent',
+                                          debug_stream=self.debug,
+                                          warn_stream=self.warn,
+                                          error_stream=self.error)
             
         except Exception,e:
             self._currentAttr = None
         #---- internals
-        self._threshold = threashold
+        self._threshold = threshold
         self._nAcquisitions = nAcquisitions
         self._cyclicBuffer = cyclicBuffer
         self._t0 = []
@@ -190,8 +203,8 @@ class BunchAnalyzer:
         self._bunchIntensity = []
         self._resultingFrequency = 0
         self.debug("BunchAnalyzer created with parameters: "\
-                   "nAcquisitions=%d, startingPoint=%d"
-                   %(self.NAcquisitions(),self.StartingPoint()))
+                   "nAcquisitions=%d, startingPoint=%d, threshold=%6.3f"
+                   %(self.NAcquisitions(),self.StartingPoint(),self.Threshold()))
     ######
     #----# Auxiliary setters and getters to modify the behaviour from the device server
     #----##Timming
@@ -223,21 +236,19 @@ class BunchAnalyzer:
         else: raise ValueError("Use by ScopeDevName()")
     def ScopeSampleRate(self,value=None):
         if value==None: return self._scopeSampleRate.getValue()
-        else:
-            if self._scopeSampleRate != value:
-                self.debug("Sample rate changed: clean the cyclic buffer")
-                self.CyclicBuffer([])
-                if self.StartingPoint() != 0:
-                    self.debug("Sample rate changed: update the starting point")
-                    self.StartingPoint(self.StartingPoint()*(value/self.ScopeSampleRate()))
-                    #this increases or reduces the starting point 
-                    #maintaining its ratio
-                    #if value 2e10 and was 4e10, divide by 2 (multiply by a half)
-                    #if value 4e10 and was 2e10, multiply by 2
-            self._scopeSampleRate.setValue(value)
+        else: raise AttributeError("read only attribute")
     def cbScopeSampleRate(self,value):
         #The buffer cannot contain different length of the waveforms
-        self.ScopeSampleRate(value)
+        if self._scopeSampleRate.getValue() != value:
+            self.debug("Sample rate changed: clean the cyclic buffer")
+            self.CyclicBuffer([])
+            if self.StartingPoint() != 0:
+                self.debug("Sample rate changed: update the starting point")
+                self.StartingPoint(self.StartingPoint()*(value/self.ScopeSampleRate()))
+                #this increases or reduces the starting point 
+                #maintaining its ratio
+                #if value 2e10 and was 4e10, divide by 2 (multiply by a half)
+                #if value 4e10 and was 2e10, multiply by 2
     #----##RF
     def RfFrequency(self,value=None):
         if value == None: return self._rfFrequency.getValue()
@@ -245,28 +256,37 @@ class BunchAnalyzer:
     #----##internals
     def Threshold(self,value=None):
         if value==None: return self._threshold
-        else: self._threshold = value
+        else:
+            if value >= 0 and value <= 100:
+                self._threshold = value
+            else:
+                raise AttributeError("Threshold out of range")
     def NAcquisitions(self,value=None):
         if value==None: return self._nAcquisitions
-        else: self._nAcquisitions = value
+        else: self._nAcquisitions = int(value)
     def CyclicBuffer(self,value=None):
         if value==None: return self._cyclicBuffer
-        else: self._cyclicBuffer = value
+        else:
+            if type(value) == list:
+                self.debug("Clean cyclic buffer")
+                self._cyclicBuffer = value
+            else:
+                raise AttributeError("Unrecognized type for buffer")
     def StartingPoint(self,value=None):
         if value==None: return self._startingPoint
-        else: self._startingPoint = value
+        else: self._startingPoint = int(value)
     def FilledBunches(self,value=None):
         if value==None: return self._filledBunches
-        else: AttributeError("read only attribute")
+        else: raise AttributeError("read only attribute")
     def SpuriousBunches(self,value=None):
         if value==None: return self._spuriousBunches
-        else: AttributeError("read only attribute")
+        else: raise AttributeError("read only attribute")
     def BunchIntensity(self,value=None):
         if value==None: return self._bunchIntensity
-        else: AttributeError("read only attribute")
+        else: raise AttributeError("read only attribute")
     def ResultingFrequency(self,value=None):
         if value==None: return self._resultingFrequency
-        else: AttributeError("read only attribute")
+        else: raise AttributeError("read only attribute")
     # done auxiliary setters and getters to modify the behaviour from the device server
     ####
 
@@ -294,6 +314,9 @@ class BunchAnalyzer:
                 print("error: %s"%(msg))
         except: print("cannot print in error stream (%s)"%msg)
     def subscribe_event(self,attrName):
+        self.debug("subscribe to %s"%(attrName))
+        if self._scopeProxy == None:
+            raise EnvironmentError("Cannot subscribe if no scope proxy set")
         self._scopeChAttrEvent = self._scopeProxy.subscribe_event(attrName,
                                                                   PyTango.EventType.CHANGE_EVENT,
                                                                   self)
