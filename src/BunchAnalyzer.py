@@ -71,104 +71,207 @@ from copy import copy,deepcopy
 from scipy import signal
 import PyTango
 
+class Attribute:
+    def __init__(self,devName='SR/DI/DCCT',attrName='AverageCurrent',callback=None,
+                 error_stream=None,warn_stream=None,debug_stream=None):
+        try:
+            self.__devName = devName
+            self.__attrName = attrName
+            self.__name = devName+'/'+attrName
+            self.debug_stream = debug_stream
+            self.warn_stream = warn_stream
+            self.error_stream = error_stream
+            self.__devProxy = PyTango.DeviceProxy(devName)
+            self.__attrValue = self.__devProxy[attrName].value
+            self.__attrEvent = None
+            self.subscribe_event()
+            self.__callback = callback
+        except Exception,e:
+            print("Attribute %s/%s init exception %s"%(devName,attrName,e))
+    def debug(self,msg):
+        try: self.debug_stream("In %s Attribute %s"%(self.__name,msg))
+        except: print("%s::debug: %s"%(self.__name,msg))
+    def warn(self,msg):
+        try: self.warn_stream("In %s Attribute %s"%(self.__name,msg))
+        except: print("%s::warn:  %s"%(self.__name,msg))
+    def error(self,msg):
+        try: self.error_stream("In %s Attribute %s"%(self.__name,msg))
+        except: print("%s::error: %s"%(self.__name,msg))
+    def subscribe_event(self):
+        try:
+            self.__attrEvent = self.__devProxy.subscribe_event(attrName,
+                                                               PyTango.EventType.CHANGE_EVENT,
+                                                               self)
+        except:
+            pass
+    def unsubscribe_event(self):
+        if self.__attrEvent != None:
+            self.__devProxy.unsubscribe_event(self.__attrEvent)
+    def push_event(self,event):
+        try:
+            if event != None:
+                if event.attr_value != None and event.attr_value.value != None:
+                    self.debug("%s::PushEvent() %s: array of %d elements"
+                               %(self.__name,event.attr_name,
+                                 event.attr_value.value.size))
+                else:
+                    self.debug("%s::PushEvent() %s: value has None type"
+                               %(self.__name,event.attr_name))
+        except Exception,e:
+            self.error("%s::PushEvent() exception %s:"%(self.__name,e))
+        try:#when there is a callback, it's responsible to store the new value
+            if self.__callback != None:
+                self.debug("%s::PushEvent() callback called"%(self.__name))
+                self.__callback(event.attr_value.value)
+            else:
+                self.__attrValue = event.attr_value.value
+        except Exception,e:
+            self.error("%s::PushEvent() callback exception %s:"
+                       %(self.__name,e))
+    def getValue(self):
+        return self.__attrValue
+    def setValue(self,value):
+        self.__devProxy[self.__attrName] = value
+
 class BunchAnalyzer:
-    def __init__(self,parent=None,timingDevName=None,scopeDevName=None,
-                  timingoutput=0,delayTick=18281216,threashold=1,
-                  nAcquisitions=30,cyclicBuffer=None,
-                  startingPoint=906,scopeSampleRate=4.0e9,
-                  max_cyclicBuf=250,alarm_cyclicBuf=50):
+    def __init__(self,parent=None,
+                  timingDevName=None,timingoutput=0,delayTick=18281216,
+                  scopeDevName=None,cyclicBuffer=[],
+                  threashold=1,nAcquisitions=30,startingPoint=906,
+                  max_cyclicBuf=100,alarm_cyclicBuf=50):
         self._parent=parent
+        #---- timing
         try:
             self._timingDevName = timingDevName
             self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
         except Exception,e:
+            self._timingDevName = ""
             self._timingProxy = None
+        self._timingoutput = timingoutput
+        self._delayTick = delayTick
+        #---- scope
         try:
             self._scopeDevName = scopeDevName
             self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
+            self._scopeSampleRate = Attribute(devName=scopeDevName,
+                                              attrName='CurrentSampleRate',
+                                              callback=self.cbScopeSampleRate)
+            #TODO: replace the current subscription to the channel1
         except Exception,e:
+            self._scopeDevName = ""
             self._scopeProxy = None
-        self._timingoutput = timingoutput
-        self._delayTick = delayTick
+            self._scopeSampleRate = None
+        #---- RF
+        try:
+            self._rfFrequency = Attribute(devName='SR09/rf/sgn-01',#FIXME: avoid hardcoding
+                                          attrName='Frequency')
+        except Exception,e:
+            self._rfFrequency = None#499650374.85
+        #---- dcct
+        try:
+            self._currentAttr = Attribute(devName='SR/DI/DCCT',#FIXME: avoid hardcoding
+                                          attrName='AverageCurrent')
+            
+        except Exception,e:
+            self._currentAttr = None
+        #---- internals
         self._threshold = threashold
         self._nAcquisitions = nAcquisitions
         self._cyclicBuffer = cyclicBuffer
         self._t0 = []
         self._tf = []
         self._startingPoint = startingPoint
-        self._scopeSampleRate = scopeSampleRate
-        self._rfFrequency = 499650374.85
         self.__max_cyclicBuf = max_cyclicBuf
         self.__alarm_cyclicBuf = alarm_cyclicBuf
-        
-        #outputs
+        #---- outputs
         self._filledBunches = 0
         self._spuriousBunches = 0
         self._yFiltered = []
         self._bunchIntensity = []
         self._resultingFrequency = 0
-
-    ####
-    # Auxiliary setters and getters to modify the behaviour from the device server
-    def getTimingDevName(self):
-        return self._timingDevName
-    def getTimingDevice(self):
-        return self._timingProxy
-    def setTimingDevName(self,name):
-        self._timingDevName = name
-        self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
-    def getScopeDevName(self):
-        return self._scopeDevName
-    def getScopeDevice(self):
-        return self._scopeProxy
-    def setScopeDevName(self,name):
-        self._scopeDevName = name
-        self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
-    def getTimingoutput(self):
-        return self._timingoutput
-    def setTimingoutput(self,value):
-        self._timingoutput = value
-    def getDelayTick(self):
-        return self._delayTick
-    def setDelayTick(self,value):
-        self._delayTick = value
-    def getThreshold(self):
-        return self._threshold
-    def setThreshold(self,value):
-        self._threshold = value
-    def getNAcquisitions(self):
-        return self._nAcquisitions
-    def setNAcquisitions(self,value):
-        self._nAcquisitions = value
-    def getCyclicBuffer(self):
-        return self._cyclicBuffer
-    def setCyclicBuffer(self,buffer):
-        self._cyclicBuffer = buffer
-    def getStartingPoint(self):
-        return self._startingPoint
-    def setStartingPoint(self,value):
-        self._startingPoint = value
-    def getScopeSampleRate(self):
-        return self._scopeSampleRate
-    def setScopeSampleRate(self,value):
-        self._scopeSampleRate = value
-    def getRfFrequency(self):
-        return self._rfFrequency
-    def setRfFrequency(self,value):
-        self._rfFrequency = value
-    def getFilledBunches(self):
-        return self._filledBunches
-    def getSpuriousBunches(self):
-        return self._spuriousBunches
-    def getBunchIntensity(self):
-        return self._bunchIntensity
-    def getResultingFrequency(self):
-        return self._resultingFrequency
+        self.debug("BunchAnalyzer created with parameters: "\
+                   "nAcquisitions=%d, startingPoint=%d"
+                   %(self.NAcquisitions(),self.StartingPoint()))
+    ######
+    #----# Auxiliary setters and getters to modify the behaviour from the device server
+    #----##Timming
+    def TimingDevName(self,value=None):
+        '''getter/setter in one'''
+        if value == None:
+            return self._timingDevName
+        else:
+            self._timingDevName = name
+            self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
+    def TimingDevice(self,value=None):
+        if value==None:  return self._timingProxy
+        else:  raise ValueError("Use by TimingDevName()")
+    def TimingOutput(self,value=None):
+        if value == None:  return self._timingoutput
+        else: self._timingoutput = value
+    def DelayTick(self,value=None):
+        if value == None: return self._delayTick
+        else:  self._delayTick = value
+    #----##Scope
+    def ScopeDevName(self,value=None):
+        if value == None:
+            return self._scopeDevName
+        else:
+            self._scopeDevName = name
+            self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
+    def ScopeDevice(self,value=None):
+        if value == None: return self._scopeProxy
+        else: raise ValueError("Use by ScopeDevName()")
+    def ScopeSampleRate(self,value=None):
+        if value==None: return self._scopeSampleRate.getValue()
+        else:
+            if self._scopeSampleRate != value:
+                self.debug("Sample rate changed: clean the cyclic buffer")
+                self.CyclicBuffer([])
+                if self.StartingPoint() != 0:
+                    self.debug("Sample rate changed: update the starting point")
+                    self.StartingPoint(self.StartingPoint()*(value/self.ScopeSampleRate()))
+                    #this increases or reduces the starting point 
+                    #maintaining its ratio
+                    #if value 2e10 and was 4e10, divide by 2 (multiply by a half)
+                    #if value 4e10 and was 2e10, multiply by 2
+            self._scopeSampleRate.setValue(value)
+    def cbScopeSampleRate(self,value):
+        #The buffer cannot contain different length of the waveforms
+        self.ScopeSampleRate(value)
+    #----##RF
+    def RfFrequency(self,value=None):
+        if value == None: return self._rfFrequency.getValue()
+        else: self._rfFrequency.setValue(value)
+    #----##internals
+    def Threshold(self,value=None):
+        if value==None: return self._threshold
+        else: self._threshold = value
+    def NAcquisitions(self,value=None):
+        if value==None: return self._nAcquisitions
+        else: self._nAcquisitions = value
+    def CyclicBuffer(self,value=None):
+        if value==None: return self._cyclicBuffer
+        else: self._cyclicBuffer = value
+    def StartingPoint(self,value=None):
+        if value==None: return self._startingPoint
+        else: self._startingPoint = value
+    def FilledBunches(self,value=None):
+        if value==None: return self._filledBunches
+        else: AttributeError("read only attribute")
+    def SpuriousBunches(self,value=None):
+        if value==None: return self._spuriousBunches
+        else: AttributeError("read only attribute")
+    def BunchIntensity(self,value=None):
+        if value==None: return self._bunchIntensity
+        else: AttributeError("read only attribute")
+    def ResultingFrequency(self,value=None):
+        if value==None: return self._resultingFrequency
+        else: AttributeError("read only attribute")
     # done auxiliary setters and getters to modify the behaviour from the device server
     ####
 
-    ####
-    # auxiliary methods to manage events
+    ######
+    #----# auxiliary methods to manage events
     def debug(self,msg):
         try:
             if self._parent:
@@ -206,16 +309,21 @@ class BunchAnalyzer:
                     self.debug("PushEvent() %s: array of %d elements"%(event.attr_name,event.attr_value.value.size))
                 else:
                     self.debug("PushEvent() %s: value has None type"%(event.attr_name))
+                    return
         except Exception,e:
             self.error("PushEvent() exception %s:"%(e))
         #timestamps when this starts
         t0 = time.time()
         eventList = []
+        #if the size of the elements in the buffer have changed, restart them
+        if len(self._cyclicBuffer) > 0:
+            if len(self._cyclicBuffer[0]) != len(event.attr_value.value):
+                self.ScopeSampleRate(len(event.attr_value.value))
         #populate the cyclicBuffer
         self._cyclicBuffer.append(event.attr_value.value)
         #state changes between STANDBY<->ON when the len(cyclicBuffer)<nAcquitions
         bufLen = len(self._cyclicBuffer)
-        if bufLen < self._nAcquisitions:
+        if bufLen < self.NAcquisitions():
             if not self._parent.get_state() in [PyTango.DevState.STANDBY,
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.STANDBY)
@@ -224,7 +332,7 @@ class BunchAnalyzer:
             else:
                 eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_CHANGING])
         else:
-            while len(self._cyclicBuffer) > self._nAcquisitions:
+            while len(self._cyclicBuffer) > self.NAcquisitions():
                 self._cyclicBuffer.pop(0)
             if not self._parent.get_state() in [PyTango.DevState.ON,
                                                 PyTango.DevState.ALARM]:
@@ -239,14 +347,14 @@ class BunchAnalyzer:
         #      or any that must be reread after N waveforms received
         #with the current values on the cyclic buffer, analyze it.
         #FIXME: why call delay when we are maintaining the delayTick
-        self.debug("Time delay: %d (DelayTick: %d)"%(self.delay(),self.getDelayTick()))
+        self.debug("Time delay: %d (DelayTick: %d)"%(self.delay(),self.DelayTick()))
         #Usefull variables
-        SampRate = self._scopeSampleRate
+        SampRate = self.ScopeSampleRate()
         self.debug("SampRate = %f"%(SampRate))
         secperbin = 1./SampRate
         self.debug("secperbin = %12.12f"%(secperbin))
         CutOffFreq = 500#FIXME: would be this variable?
-        freq = self._rfFrequency
+        freq = self._rfFrequency.getValue()
         self.debug("RF freq = %f"%(freq))
         time_win = int((1/freq)/secperbin)
         self.debug("time_win = %d"%(time_win))
@@ -256,7 +364,7 @@ class BunchAnalyzer:
         #    Timing = 146351002 ns,
         #    OffsetH = 200 ns,
         #    ScaleH = 100 ns
-        start = self.getStartingPoint()
+        start = self.StartingPoint()
         #NOT WORKING IF THE BEAM IS UNSTABLE
         #if len(self._cyclicBuffer)==0: return
         self.debug("cyclic buffer size: %d"%(len(self._cyclicBuffer)))
@@ -276,7 +384,7 @@ class BunchAnalyzer:
             #print(time_win)
             p2p = self.peakToPeak(time_win, x)
             #FIXME: better to subscribe
-            current = PyTango.AttributeProxy('SR/DI/DCCT/AverageCurrent').read().value
+            current = self._currentAttr.getValue()
             #FIXME: use the new attr 
             nBunches = self._filledBunches-self._spuriousBunches
             self._bunchIntensity = ((p2p/max(p2p))*current)/(nBunches)
@@ -290,14 +398,14 @@ class BunchAnalyzer:
             eventList.append(['BunchIntensity',self._bunchIntensity])
             eventList.append(['FilledBunches',self._filledBunches])
             eventList.append(['SpuriousBunches',self._spuriousBunches])
-            eventList.append(['nBunches',self._filledBunches-self._spuriousBunches])
+            eventList.append(['nBunches',nBunches])
             #self._parent.fireEventsList(eventList)
             #time stamps when this finish to know: how long it has take,
             tf = time.time()
             self._t0.append(t0)
             self._tf.append(tf)
             self.debug("current calculation in %f"%(tf-t0))
-            while len(self._tf) > self._nAcquisitions:
+            while len(self._tf) > self.NAcquisitions():
                 self._t0.pop(0)
                 self._tf.pop(0)
             #use the time to calculate the output frequency
@@ -338,13 +446,10 @@ class BunchAnalyzer:
     def lowPassFilter(self,Samp_Rate, Time_Windows,Start, Cut_Off_Freq, 
                              x_data, y_data, Secperbin):
         '''TODO: document this method'''
-#        self.debug("SampleRate %6.3f"%(Samp_Rate))
-#        self.debug("Time window %d"%(Time_Windows))
-#        self.debug("Start %d"%(Start))
-#        self.debug("Cut off frequency %6.3f"%(Cut_Off_Freq))
-#        self.debug("x %s"%x_data)
-#        self.debug("y %s"%y_data)
-#        self.debug("Secperbin %6.3f"%(Secperbin))
+        self.debug("lowPassFiler(SampleRate=%6.3f,Time window=%d,Start=%d,"\
+                   "CutFreq=%6.3f,len(x)=%d,len(y)=%d,Secprebin=%12.12f"
+                   %(Samp_Rate,Time_Windows,Start,Cut_Off_Freq,
+                     len(x_data),len(y_data),Secperbin))
         try:
             #FIXME: parameters would be in side the class?
             #cutoff frequency at 0.05 Hz normalized at the Niquist frequency (1/2 samp rate)
@@ -366,17 +471,18 @@ class BunchAnalyzer:
             if Start > len(y_Fil):
                 if self._parent and self._parent.get_state() != PyTango.DevState.ALARM:
                     self._parent.change_state(PyTango.DevState.ALARM)
-                self._parent.addStatusMsg("Starting point farther than input signal length.")
-                raise BufferError("Starting point farther than input signal length.")
+                msg = "Starting point (%d) farther than input signal length (%d)."%(Start,len(y_Fil))
+                self._parent.addStatusMsg(msg)
+                raise BufferError(msg)
             else:
                 if self._parent and self._parent.get_state() == PyTango.DevState.ALARM:
-                    if len(self._cyclicBuffer) < self._nAcquisitions:
+                    if len(self._cyclicBuffer) < self.NAcquisitions():
                         self._parent.change_state(PyTango.DevState.STANDBY)
                     else:
                         self._parent.change_state(PyTango.DevState.ON)
-            i = 0
-            for i in range(0, Start):
-                y_Fil[i] = sum(y_Fil)/len(y_Fil)#FIXME: is this using numpy?
+            if Start>0:
+                for i in range(Start):
+                    y_Fil[i] = sum(y_Fil)/len(y_Fil)#FIXME: is this using numpy?
             return y_Fil[Start:len(y_Fil)-1]
         except BufferError,e:
             raise BufferError(e)
