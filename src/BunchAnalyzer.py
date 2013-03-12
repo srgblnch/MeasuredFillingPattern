@@ -410,7 +410,7 @@ class BunchAnalyzer:
             current = self._currentAttr.getValue()
             #FIXME: use the new attr 
             nBunches = self._filledBunches-self._spuriousBunches
-            self._bunchIntensity = ((p2p/max(p2p))*current)/(nBunches)
+            self._bunchIntensity = ((p2p/max(p2p))*current)#/(nBunches)
             self.debug("len(_bunchIntensity) = %d"%(len(self._bunchIntensity)))
             self._filledBunches = self.bunchCount(self._bunchIntensity)
             self.debug("FilledBunches = %d"%self._filledBunches)
