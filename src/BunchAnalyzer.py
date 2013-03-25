@@ -134,11 +134,11 @@ class Attribute:
     def getValue(self):
         return self.__attrValue
     def setValue(self,value):
+        self.__attrValue = value
         try:
             self.__devProxy[self.__attrName] = value
         except:
             self.warn("This is not a write value")
-            self.__attrValue = value
 
 class BunchAnalyzer:
     def __init__(self,parent=None,
@@ -259,16 +259,23 @@ class BunchAnalyzer:
         else: raise AttributeError("read only attribute")
     def cbScopeSampleRate(self,value):
         #The buffer cannot contain different length of the waveforms
+        self.debug("Sample rate event: ¿%6.3f == %6.3f?"%(self._scopeSampleRate.getValue(),value))
         if self._scopeSampleRate.getValue() != value:
             self.debug("Sample rate changed: clean the cyclic buffer")
             self.CyclicBuffer([])
             if self.StartingPoint() != 0:
-                self.debug("Sample rate changed: update the starting point")
-                self.StartingPoint(self.StartingPoint()*(value/self.ScopeSampleRate()))
+                oldStartingPoint = self.StartingPoint()
+                self.debug("Sample rate changed: update the starting point (was:%d)"%oldStartingPoint)
+                relation = (value/self._scopeSampleRate.getValue())
+                self.debug("Sample rate changed: relation %6.3f"%relation)
+                newStartingPoint = oldStartingPoint * relation
+                self.debug("Sample rate changed: update the starting point (set:%d)"%newStartingPoint)
+                self.StartingPoint(newStartingPoint)
                 #this increases or reduces the starting point 
                 #maintaining its ratio
                 #if value 2e10 and was 4e10, divide by 2 (multiply by a half)
                 #if value 4e10 and was 2e10, multiply by 2
+            self._scopeSampleRate.setValue(value)
     def ScopeScaleH(self,value=None):
         if value==None: return self._scopeScaleH.getValue()
         else: self._scopeScaleH.setValue(value)
