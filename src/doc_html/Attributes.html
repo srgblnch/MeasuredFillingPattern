@@ -19,7 +19,27 @@
 		<td> <center><b> Description </b></center> </td>
 	</tr>
 	<tr>
+		<td> <a href="AttrFilledBunches.html"> FilledBunches </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_ULONG </td>
+		<td> OPERATOR </td>
+		<td>  </td>
+	</tr>
+	<tr>
 		<td> <a href="AttrOffsetH.html"> OffsetH </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_DOUBLE </td>
+		<td> EXPERT </td>
+		<td> Oscilloscope Horizontal Offset </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrOffsetH_expert.html"> OffsetH_expert </a> </td>
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
@@ -33,13 +53,43 @@
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_DOUBLE </td>
+		<td> EXPERT </td>
+		<td> Oscilloscope Horizontal Scale </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrScaleH_expert.html"> ScaleH_expert </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
 		<td> READ_WRITE </td>
 		<td> Tango::DEV_DOUBLE </td>
 		<td> EXPERT </td>
 		<td> Oscilloscope Horizontal Scale </td>
 	</tr>
 	<tr>
+		<td> <a href="AttrSpuriousBunches.html"> SpuriousBunches </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_ULONG </td>
+		<td> OPERATOR </td>
+		<td>  </td>
+	</tr>
+	<tr>
 		<td> <a href="AttrStartingPoint.html"> StartingPoint </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_LONG </td>
+		<td> EXPERT </td>
+		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrStartingPoint_expert.html"> StartingPoint_expert </a> </td>
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
@@ -53,6 +103,16 @@
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_DOUBLE </td>
+		<td> OPERATOR </td>
+		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrThreshold_expert.html"> Threshold_expert </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
 		<td> READ_WRITE </td>
 		<td> Tango::DEV_DOUBLE </td>
 		<td> OPERATOR </td>
@@ -63,10 +123,30 @@
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_ULONG </td>
+		<td> EXPERT </td>
+		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrTimingTrigger_expert.html"> TimingTrigger_expert </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
 		<td> READ_WRITE </td>
 		<td> Tango::DEV_ULONG </td>
 		<td> EXPERT </td>
 		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttremitCyclicBuffer.html"> emitCyclicBuffer </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ_WRITE </td>
+		<td> Tango::DEV_BOOLEAN </td>
+		<td> EXPERT </td>
+		<td> This boolean attribute is to allow or not to emit the events on the cyclic Buffer. This is because it can cause delay dou to be too big buffer </td>
 	</tr>
 	<tr>
 		<td> <a href="AttrnAcquisitions.html"> nAcquisitions </a> </td>
@@ -79,17 +159,7 @@
 		<td> Number of elements in the cyclic buffer from where the calculation takes the data. </td>
 	</tr>
 	<tr>
-		<td> <a href="AttrFilledBunches.html"> FilledBunches </a> </td>
-		<td> false </td>
-		<td> false </td>
-		<td> Scalar </td>
-		<td> READ </td>
-		<td> Tango::DEV_ULONG </td>
-		<td> OPERATOR </td>
-		<td>  </td>
-	</tr>
-	<tr>
-		<td> <a href="AttrSpuriousBunches.html"> SpuriousBunches </a> </td>
+		<td> <a href="AttrnBunches.html"> nBunches </a> </td>
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
@@ -107,26 +177,6 @@
 		<td> Tango::DEV_DOUBLE </td>
 		<td> EXPERT </td>
 		<td> Expert attribute to read the frequency with this device is pushing results in the output </td>
-	</tr>
-	<tr>
-		<td> <a href="AttremitCyclicBuffer.html"> emitCyclicBuffer </a> </td>
-		<td> false </td>
-		<td> false </td>
-		<td> Scalar </td>
-		<td> READ_WRITE </td>
-		<td> Tango::DEV_BOOLEAN </td>
-		<td> EXPERT </td>
-		<td> This boolean attribute is to allow or not to emit the events on the cyclic Buffer. This is because it can cause delay dou to be too big buffer </td>
-	</tr>
-	<tr>
-		<td> <a href="AttrnBunches.html"> nBunches </a> </td>
-		<td> false </td>
-		<td> false </td>
-		<td> Scalar </td>
-		<td> READ </td>
-		<td> Tango::DEV_ULONG </td>
-		<td> OPERATOR </td>
-		<td>  </td>
 	</tr>
 	<tr>
 		<td> <a href="AttrBunchIntensity.html"> BunchIntensity </a> </td>

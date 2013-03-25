@@ -55,17 +55,22 @@
 			</ul>
 			<li> <a href="FullDocument.html#attributes">   Attributes   </a>
 			<ul>
-				<li> <a href="FullDocument.html#attrOffsetH"> OffsetH </a>
-				<li> <a href="FullDocument.html#attrScaleH"> ScaleH </a>
-				<li> <a href="FullDocument.html#attrStartingPoint"> StartingPoint </a>
-				<li> <a href="FullDocument.html#attrThreshold"> Threshold </a>
-				<li> <a href="FullDocument.html#attrTimingTrigger"> TimingTrigger </a>
-				<li> <a href="FullDocument.html#attrnAcquisitions"> nAcquisitions </a>
 				<li> <a href="FullDocument.html#attrFilledBunches"> FilledBunches </a>
+				<li> <a href="FullDocument.html#attrOffsetH"> OffsetH </a>
+				<li> <a href="FullDocument.html#attrOffsetH_expert"> OffsetH_expert </a>
+				<li> <a href="FullDocument.html#attrScaleH"> ScaleH </a>
+				<li> <a href="FullDocument.html#attrScaleH_expert"> ScaleH_expert </a>
 				<li> <a href="FullDocument.html#attrSpuriousBunches"> SpuriousBunches </a>
-				<li> <a href="FullDocument.html#attrresultingFrequency"> resultingFrequency </a>
+				<li> <a href="FullDocument.html#attrStartingPoint"> StartingPoint </a>
+				<li> <a href="FullDocument.html#attrStartingPoint_expert"> StartingPoint_expert </a>
+				<li> <a href="FullDocument.html#attrThreshold"> Threshold </a>
+				<li> <a href="FullDocument.html#attrThreshold_expert"> Threshold_expert </a>
+				<li> <a href="FullDocument.html#attrTimingTrigger"> TimingTrigger </a>
+				<li> <a href="FullDocument.html#attrTimingTrigger_expert"> TimingTrigger_expert </a>
 				<li> <a href="FullDocument.html#attremitCyclicBuffer"> emitCyclicBuffer </a>
+				<li> <a href="FullDocument.html#attrnAcquisitions"> nAcquisitions </a>
 				<li> <a href="FullDocument.html#attrnBunches"> nBunches </a>
+				<li> <a href="FullDocument.html#attrresultingFrequency"> resultingFrequency </a>
 				<li> <a href="FullDocument.html#attrBunchIntensity"> BunchIntensity </a>
 				<li> <a href="FullDocument.html#attrcyclicBuffer"> cyclicBuffer </a>
 			</ul>
@@ -430,7 +435,27 @@
 		<td> <center><b> Description </b></center> </td>
 	</tr>
 	<tr>
+		<td> <a href="AttrFilledBunches.html"> FilledBunches </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_ULONG </td>
+		<td> OPERATOR </td>
+		<td>  </td>
+	</tr>
+	<tr>
 		<td> <a href="AttrOffsetH.html"> OffsetH </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_DOUBLE </td>
+		<td> EXPERT </td>
+		<td> Oscilloscope Horizontal Offset </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrOffsetH_expert.html"> OffsetH_expert </a> </td>
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
@@ -444,13 +469,43 @@
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_DOUBLE </td>
+		<td> EXPERT </td>
+		<td> Oscilloscope Horizontal Scale </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrScaleH_expert.html"> ScaleH_expert </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
 		<td> READ_WRITE </td>
 		<td> Tango::DEV_DOUBLE </td>
 		<td> EXPERT </td>
 		<td> Oscilloscope Horizontal Scale </td>
 	</tr>
 	<tr>
+		<td> <a href="AttrSpuriousBunches.html"> SpuriousBunches </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_ULONG </td>
+		<td> OPERATOR </td>
+		<td>  </td>
+	</tr>
+	<tr>
 		<td> <a href="AttrStartingPoint.html"> StartingPoint </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_LONG </td>
+		<td> EXPERT </td>
+		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrStartingPoint_expert.html"> StartingPoint_expert </a> </td>
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
@@ -464,6 +519,16 @@
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_DOUBLE </td>
+		<td> OPERATOR </td>
+		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrThreshold_expert.html"> Threshold_expert </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
 		<td> READ_WRITE </td>
 		<td> Tango::DEV_DOUBLE </td>
 		<td> OPERATOR </td>
@@ -474,10 +539,30 @@
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
+		<td> READ </td>
+		<td> Tango::DEV_ULONG </td>
+		<td> EXPERT </td>
+		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrTimingTrigger_expert.html"> TimingTrigger_expert </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
 		<td> READ_WRITE </td>
 		<td> Tango::DEV_ULONG </td>
 		<td> EXPERT </td>
 		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttremitCyclicBuffer.html"> emitCyclicBuffer </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ_WRITE </td>
+		<td> Tango::DEV_BOOLEAN </td>
+		<td> EXPERT </td>
+		<td> This boolean attribute is to allow or not to emit the events on the cyclic Buffer. This is because it can cause delay dou to be too big buffer </td>
 	</tr>
 	<tr>
 		<td> <a href="AttrnAcquisitions.html"> nAcquisitions </a> </td>
@@ -490,17 +575,7 @@
 		<td> Number of elements in the cyclic buffer from where the calculation takes the data. </td>
 	</tr>
 	<tr>
-		<td> <a href="AttrFilledBunches.html"> FilledBunches </a> </td>
-		<td> false </td>
-		<td> false </td>
-		<td> Scalar </td>
-		<td> READ </td>
-		<td> Tango::DEV_ULONG </td>
-		<td> OPERATOR </td>
-		<td>  </td>
-	</tr>
-	<tr>
-		<td> <a href="AttrSpuriousBunches.html"> SpuriousBunches </a> </td>
+		<td> <a href="AttrnBunches.html"> nBunches </a> </td>
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
@@ -518,26 +593,6 @@
 		<td> Tango::DEV_DOUBLE </td>
 		<td> EXPERT </td>
 		<td> Expert attribute to read the frequency with this device is pushing results in the output </td>
-	</tr>
-	<tr>
-		<td> <a href="AttremitCyclicBuffer.html"> emitCyclicBuffer </a> </td>
-		<td> false </td>
-		<td> false </td>
-		<td> Scalar </td>
-		<td> READ_WRITE </td>
-		<td> Tango::DEV_BOOLEAN </td>
-		<td> EXPERT </td>
-		<td> This boolean attribute is to allow or not to emit the events on the cyclic Buffer. This is because it can cause delay dou to be too big buffer </td>
-	</tr>
-	<tr>
-		<td> <a href="AttrnBunches.html"> nBunches </a> </td>
-		<td> false </td>
-		<td> false </td>
-		<td> Scalar </td>
-		<td> READ </td>
-		<td> Tango::DEV_ULONG </td>
-		<td> OPERATOR </td>
-		<td>  </td>
 	</tr>
 	<tr>
 		<td> <a href="AttrBunchIntensity.html"> BunchIntensity </a> </td>
@@ -566,9 +621,334 @@
 <font size="+1"><u><b> There is no dynamic attribute defined. </b></u></font>
 <br><br>
 <hr>
+<a name="attrFilledBunches"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute FilledBunches : </b></u></font>
+<ul>
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_ULONG </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> OPERATOR </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Filled Bunches </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
 <a name="attrOffsetH"> </a>
 <br><br><br>
 <font size="+1"><u><b> Attribute OffsetH : </b></u></font>
+<ul>
+	Oscilloscope Horizontal Offset
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_DOUBLE </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> EXPERT </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Oscilloscope Horizontal Offset </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td> s </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td> %3.9f </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrOffsetH_expert"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute OffsetH_expert : </b></u></font>
 <ul>
 	Oscilloscope Horizontal Offset
 </ul>
@@ -634,7 +1014,7 @@
 				</tr>
 				<tr>
 					<td> label </td>
-					<td>  </td>
+					<td> Oscilloscope Horizontal Offset </td>
 				</tr>
 				<tr>
 					<td> unit </td>
@@ -757,7 +1137,7 @@
 				</tr>
 				<tr>
 					<td> R/W Type </td>
-					<td> READ_WRITE </td>
+					<td> READ </td>
 				</tr>
 				<tr>
 					<td> Data Type </td>
@@ -781,19 +1161,11 @@
 				</tr>
 				<tr>
 					<td> Memorized </td>
-					<td> true </td>
-				</tr>
-				<tr>
-					<td> Write hardware at init. </td>
-					<td> true </td>
+					<td> Not set </td>
 				</tr>
 			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
 				<tr>
 					<td> Read allowed for </td>
-					<td> All states </td>
-				</tr>
-				<tr>
-					<td> Write allowed for </td>
 					<td> All states </td>
 				</tr>
 			</table>
@@ -805,7 +1177,7 @@
 				</tr>
 				<tr>
 					<td> label </td>
-					<td>  </td>
+					<td> Oscilloscope Horizontal Scale </td>
 				</tr>
 				<tr>
 					<td> unit </td>
@@ -908,180 +1280,11 @@
 </table>
 <br><br>
 <hr>
-<a name="attrStartingPoint"> </a>
+<a name="attrScaleH_expert"> </a>
 <br><br><br>
-<font size="+1"><u><b> Attribute StartingPoint : </b></u></font>
+<font size="+1"><u><b> Attribute ScaleH_expert : </b></u></font>
 <ul>
-</ul>
-<br><br><br>
-<Table Border=0 Cellpadding=0 CELLSPACING=20>
-	<TR>
-		<TD ALIGN="left" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
-				</tr>
-				<tr>
-					<td> Attribute Type </td>
-					<td> Scalar </td>
-				</tr>
-				<tr>
-					<td> R/W Type </td>
-					<td> READ_WRITE </td>
-				</tr>
-				<tr>
-					<td> Data Type </td>
-					<td> Tango::DEV_LONG </td>
-				</tr>
-				<tr>
-					<td> Display Level </td>
-					<td> EXPERT </td>
-				</tr>
-				<tr>
-					<td> Inherited </td>
-					<td> false </td>
-				</tr>
-				<tr>
-					<td> Abstract </td>
-					<td> false </td>
-				</tr>
-				<tr>
-					<td> Polling Period </td>
-					<td> Not polled </td>
-				</tr>
-				<tr>
-					<td> Memorized </td>
-					<td> true </td>
-				</tr>
-				<tr>
-					<td> Write hardware at init. </td>
-					<td> true </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Read allowed for </td>
-					<td> All states </td>
-				</tr>
-				<tr>
-					<td> Write allowed for </td>
-					<td> All states </td>
-				</tr>
-			</table>
-		</td>
-		<TD ALIGN="Center" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
-				</tr>
-				<tr>
-					<td> label </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> standard unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> display unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> format </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_value </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_value </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_alarm </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_alarm </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_warning </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_warning </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> delta_time </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> delta_val </td>
-					<td>  </td>
-				</tr>
-			</table>
-		</td>
-		<TD ALIGN="Right" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
-				</tr>
-				<tr>
-					<td> Periodic </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Relative Change </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Absolute Change </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Archive Periodic </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Archive Relative Change </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Archive Absolute Change </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Push Change event by user code </td>
-					<td> false </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
-				<tr>
-					<td> Push Archive event by user code </td>
-					<td> false </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
-				<tr>
-					<td> Push DataReady event by user code </td>
-					<td> false </td>
-				</tr>
-			</table>
-		</td>
-	</TR>
-</table>
-<br><br>
-<hr>
-<a name="attrThreshold"> </a>
-<br><br><br>
-<font size="+1"><u><b> Attribute Threshold : </b></u></font>
-<ul>
+	Oscilloscope Horizontal Scale
 </ul>
 <br><br><br>
 <Table Border=0 Cellpadding=0 CELLSPACING=20>
@@ -1105,176 +1308,6 @@
 				</tr>
 				<tr>
 					<td> Display Level </td>
-					<td> OPERATOR </td>
-				</tr>
-				<tr>
-					<td> Inherited </td>
-					<td> false </td>
-				</tr>
-				<tr>
-					<td> Abstract </td>
-					<td> false </td>
-				</tr>
-				<tr>
-					<td> Polling Period </td>
-					<td> Not polled </td>
-				</tr>
-				<tr>
-					<td> Memorized </td>
-					<td> true </td>
-				</tr>
-				<tr>
-					<td> Write hardware at init. </td>
-					<td> true </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Read allowed for </td>
-					<td> All states </td>
-				</tr>
-				<tr>
-					<td> Write allowed for </td>
-					<td> All states </td>
-				</tr>
-			</table>
-		</td>
-		<TD ALIGN="Center" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
-				</tr>
-				<tr>
-					<td> label </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> unit </td>
-					<td> % </td>
-				</tr>
-				<tr>
-					<td> standard unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> display unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> format </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_value </td>
-					<td> 100 </td>
-				</tr>
-				<tr>
-					<td> min_value </td>
-					<td> 0 </td>
-				</tr>
-				<tr>
-					<td> max_alarm </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_alarm </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_warning </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_warning </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> delta_time </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> delta_val </td>
-					<td>  </td>
-				</tr>
-			</table>
-		</td>
-		<TD ALIGN="Right" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
-				</tr>
-				<tr>
-					<td> Periodic </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Relative Change </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Absolute Change </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Archive Periodic </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Archive Relative Change </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Archive Absolute Change </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Push Change event by user code </td>
-					<td> false </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
-				<tr>
-					<td> Push Archive event by user code </td>
-					<td> false </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
-				<tr>
-					<td> Push DataReady event by user code </td>
-					<td> false </td>
-				</tr>
-			</table>
-		</td>
-	</TR>
-</table>
-<br><br>
-<hr>
-<a name="attrTimingTrigger"> </a>
-<br><br><br>
-<font size="+1"><u><b> Attribute TimingTrigger : </b></u></font>
-<ul>
-</ul>
-<br><br><br>
-<Table Border=0 Cellpadding=0 CELLSPACING=20>
-	<TR>
-		<TD ALIGN="left" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
-				</tr>
-				<tr>
-					<td> Attribute Type </td>
-					<td> Scalar </td>
-				</tr>
-				<tr>
-					<td> R/W Type </td>
-					<td> READ_WRITE </td>
-				</tr>
-				<tr>
-					<td> Data Type </td>
-					<td> Tango::DEV_ULONG </td>
-				</tr>
-				<tr>
-					<td> Display Level </td>
 					<td> EXPERT </td>
 				</tr>
 				<tr>
@@ -1295,177 +1328,6 @@
 				</tr>
 				<tr>
 					<td> Write hardware at init. </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Read allowed for </td>
-					<td> All states </td>
-				</tr>
-				<tr>
-					<td> Write allowed for </td>
-					<td> All states </td>
-				</tr>
-			</table>
-		</td>
-		<TD ALIGN="Center" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
-				</tr>
-				<tr>
-					<td> label </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> unit </td>
-					<td> ticks </td>
-				</tr>
-				<tr>
-					<td> standard unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> display unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> format </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_value </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_value </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_alarm </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_alarm </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_warning </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_warning </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> delta_time </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> delta_val </td>
-					<td>  </td>
-				</tr>
-			</table>
-		</td>
-		<TD ALIGN="Right" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
-				</tr>
-				<tr>
-					<td> Periodic </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Relative Change </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Absolute Change </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Archive Periodic </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Archive Relative Change </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Archive Absolute Change </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Push Change event by user code </td>
-					<td> false </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
-				<tr>
-					<td> Push Archive event by user code </td>
-					<td> false </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
-				<tr>
-					<td> Push DataReady event by user code </td>
-					<td> false </td>
-				</tr>
-			</table>
-		</td>
-	</TR>
-</table>
-<br><br>
-<hr>
-<a name="attrnAcquisitions"> </a>
-<br><br><br>
-<font size="+1"><u><b> Attribute nAcquisitions : </b></u></font>
-<ul>
-	Number of elements in the cyclic buffer from where the calculation takes the data.
-</ul>
-<br><br><br>
-<Table Border=0 Cellpadding=0 CELLSPACING=20>
-	<TR>
-		<TD ALIGN="left" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
-				</tr>
-				<tr>
-					<td> Attribute Type </td>
-					<td> Scalar </td>
-				</tr>
-				<tr>
-					<td> R/W Type </td>
-					<td> READ_WRITE </td>
-				</tr>
-				<tr>
-					<td> Data Type </td>
-					<td> Tango::DEV_USHORT </td>
-				</tr>
-				<tr>
-					<td> Display Level </td>
-					<td> OPERATOR </td>
-				</tr>
-				<tr>
-					<td> Inherited </td>
-					<td> false </td>
-				</tr>
-				<tr>
-					<td> Abstract </td>
-					<td> false </td>
-				</tr>
-				<tr>
-					<td> Polling Period </td>
-					<td> Not polled </td>
-				</tr>
-				<tr>
-					<td> Memorized </td>
-					<td> true </td>
-				</tr>
-				<tr>
-					<td> Write hardware at init. </td>
 					<td> true </td>
 				</tr>
 			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
@@ -1486,11 +1348,11 @@
 				</tr>
 				<tr>
 					<td> label </td>
-					<td>  </td>
+					<td> Oscilloscope Horizontal Scale </td>
 				</tr>
 				<tr>
 					<td> unit </td>
-					<td>  </td>
+					<td> s/div </td>
 				</tr>
 				<tr>
 					<td> standard unit </td>
@@ -1502,169 +1364,7 @@
 				</tr>
 				<tr>
 					<td> format </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_value </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_value </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_alarm </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_alarm </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> max_warning </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> min_warning </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> delta_time </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> delta_val </td>
-					<td>  </td>
-				</tr>
-			</table>
-		</td>
-		<TD ALIGN="Right" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
-				</tr>
-				<tr>
-					<td> Periodic </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Relative Change </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Absolute Change </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Archive Periodic </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Archive Relative Change </td>
-					<td> Not set </td>
-				</tr>
-				<tr>
-					<td> Archive Absolute Change </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Push Change event by user code </td>
-					<td> false </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
-				<tr>
-					<td> Push Archive event by user code </td>
-					<td> false </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
-				<tr>
-					<td> Push DataReady event by user code </td>
-					<td> false </td>
-				</tr>
-			</table>
-		</td>
-	</TR>
-</table>
-<br><br>
-<hr>
-<a name="attrFilledBunches"> </a>
-<br><br><br>
-<font size="+1"><u><b> Attribute FilledBunches : </b></u></font>
-<ul>
-</ul>
-<br><br><br>
-<Table Border=0 Cellpadding=0 CELLSPACING=20>
-	<TR>
-		<TD ALIGN="left" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
-				</tr>
-				<tr>
-					<td> Attribute Type </td>
-					<td> Scalar </td>
-				</tr>
-				<tr>
-					<td> R/W Type </td>
-					<td> READ </td>
-				</tr>
-				<tr>
-					<td> Data Type </td>
-					<td> Tango::DEV_ULONG </td>
-				</tr>
-				<tr>
-					<td> Display Level </td>
-					<td> OPERATOR </td>
-				</tr>
-				<tr>
-					<td> Inherited </td>
-					<td> false </td>
-				</tr>
-				<tr>
-					<td> Abstract </td>
-					<td> false </td>
-				</tr>
-				<tr>
-					<td> Polling Period </td>
-					<td> Not polled </td>
-				</tr>
-				<tr>
-					<td> Memorized </td>
-					<td> Not set </td>
-				</tr>
-			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
-				<tr>
-					<td> Read allowed for </td>
-					<td> All states </td>
-				</tr>
-			</table>
-		</td>
-		<TD ALIGN="Center" VALIGN=top>
-			<Table Border=2 Cellpadding=3 CELLSPACING=0>
-				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
-				</tr>
-				<tr>
-					<td> label </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> standard unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> display unit </td>
-					<td>  </td>
-				</tr>
-				<tr>
-					<td> format </td>
-					<td>  </td>
+					<td> %3.9f </td>
 				</tr>
 				<tr>
 					<td> max_value </td>
@@ -1810,7 +1510,7 @@
 				</tr>
 				<tr>
 					<td> label </td>
-					<td>  </td>
+					<td> Spurious Bunches </td>
 				</tr>
 				<tr>
 					<td> unit </td>
@@ -1913,11 +1613,10 @@
 </table>
 <br><br>
 <hr>
-<a name="attrresultingFrequency"> </a>
+<a name="attrStartingPoint"> </a>
 <br><br><br>
-<font size="+1"><u><b> Attribute resultingFrequency : </b></u></font>
+<font size="+1"><u><b> Attribute StartingPoint : </b></u></font>
 <ul>
-	Expert attribute to read the frequency with this device is pushing results in the output
 </ul>
 <br><br><br>
 <Table Border=0 Cellpadding=0 CELLSPACING=20>
@@ -1937,7 +1636,7 @@
 				</tr>
 				<tr>
 					<td> Data Type </td>
-					<td> Tango::DEV_DOUBLE </td>
+					<td> Tango::DEV_LONG </td>
 				</tr>
 				<tr>
 					<td> Display Level </td>
@@ -1973,11 +1672,11 @@
 				</tr>
 				<tr>
 					<td> label </td>
-					<td>  </td>
+					<td> Starting Point </td>
 				</tr>
 				<tr>
 					<td> unit </td>
-					<td> Hz </td>
+					<td>  </td>
 				</tr>
 				<tr>
 					<td> standard unit </td>
@@ -1989,7 +1688,841 @@
 				</tr>
 				<tr>
 					<td> format </td>
-					<td> %3.3f </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrStartingPoint_expert"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute StartingPoint_expert : </b></u></font>
+<ul>
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ_WRITE </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_LONG </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> EXPERT </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> true </td>
+				</tr>
+				<tr>
+					<td> Write hardware at init. </td>
+					<td> true </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+				<tr>
+					<td> Write allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Starting Point </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrThreshold"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute Threshold : </b></u></font>
+<ul>
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_DOUBLE </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> OPERATOR </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Threshold </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td> % </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td> 100 </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td> 0 </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrThreshold_expert"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute Threshold_expert : </b></u></font>
+<ul>
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ_WRITE </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_DOUBLE </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> OPERATOR </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> true </td>
+				</tr>
+				<tr>
+					<td> Write hardware at init. </td>
+					<td> true </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+				<tr>
+					<td> Write allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Threshold </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td> % </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td> 100 </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td> 0 </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrTimingTrigger"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute TimingTrigger : </b></u></font>
+<ul>
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_ULONG </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> EXPERT </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> TimingTrigger </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td> ticks </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrTimingTrigger_expert"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute TimingTrigger_expert : </b></u></font>
+<ul>
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ_WRITE </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_ULONG </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> EXPERT </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> true </td>
+				</tr>
+				<tr>
+					<td> Write hardware at init. </td>
+					<td> true </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+				<tr>
+					<td> Write allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Timing Trigger </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td> ticks </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
 				</tr>
 				<tr>
 					<td> max_value </td>
@@ -2247,6 +2780,177 @@
 </table>
 <br><br>
 <hr>
+<a name="attrnAcquisitions"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute nAcquisitions : </b></u></font>
+<ul>
+	Number of elements in the cyclic buffer from where the calculation takes the data.
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ_WRITE </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_USHORT </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> OPERATOR </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> true </td>
+				</tr>
+				<tr>
+					<td> Write hardware at init. </td>
+					<td> true </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+				<tr>
+					<td> Write allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Number of acquisitions </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
 <a name="attrnBunches"> </a>
 <br><br><br>
 <font size="+1"><u><b> Attribute nBunches : </b></u></font>
@@ -2323,6 +3027,169 @@
 				<tr>
 					<td> format </td>
 					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrresultingFrequency"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute resultingFrequency : </b></u></font>
+<ul>
+	Expert attribute to read the frequency with this device is pushing results in the output
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_DOUBLE </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> EXPERT </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Resulting Frequency </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td> Hz </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td> %3.3f </td>
 				</tr>
 				<tr>
 					<td> max_value </td>

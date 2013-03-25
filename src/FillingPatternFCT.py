@@ -279,17 +279,22 @@ class FillingPatternFCT (PyTango.Device_4Impl):
     def init_device(self):
         self.debug_stream("In init_device()")
         self.get_device_properties(self.get_device_class())
-        self.attr_OffsetH_read = 0.0
-        self.attr_ScaleH_read = 0.0
-        self.attr_StartingPoint_read = 0
-        self.attr_Threshold_read = 0.0
-        self.attr_TimingTrigger_read = 0
-        self.attr_nAcquisitions_read = 0
         self.attr_FilledBunches_read = 0
+        self.attr_OffsetH_read = 0.0
+        self.attr_OffsetH_expert_read = 0.0
+        self.attr_ScaleH_read = 0.0
+        self.attr_ScaleH_expert_read = 0.0
         self.attr_SpuriousBunches_read = 0
-        self.attr_resultingFrequency_read = 0.0
+        self.attr_StartingPoint_read = 0
+        self.attr_StartingPoint_expert_read = 0
+        self.attr_Threshold_read = 0.0
+        self.attr_Threshold_expert_read = 0.0
+        self.attr_TimingTrigger_read = 0
+        self.attr_TimingTrigger_expert_read = 0
         self.attr_emitCyclicBuffer_read = False
+        self.attr_nAcquisitions_read = 0
         self.attr_nBunches_read = 0
+        self.attr_resultingFrequency_read = 0.0
         self.attr_BunchIntensity_read = [0.0]
         self.attr_cyclicBuffer_read = [[0.0]]
         #----- PROTECTED REGION ID(FillingPatternFCT.init_device) ENABLED START -----#
@@ -329,6 +334,16 @@ class FillingPatternFCT (PyTango.Device_4Impl):
     #    FillingPatternFCT read/write attribute methods
     #-----------------------------------------------------------------------------
     
+    def read_FilledBunches(self, attr):
+        self.debug_stream("In read_FilledBunches()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.FilledBunches_read) ENABLED START -----#
+        try:
+            self.attr_FilledBunches_read = self._bunchAnalyzer.FilledBunches()
+        except:
+            self.warn_stream("In read_FilledBunches() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_FilledBunches_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.FilledBunches_read
+        
     def read_OffsetH(self, attr):
         self.debug_stream("In read_OffsetH()")
         #----- PROTECTED REGION ID(FillingPatternFCT.OffsetH_read) ENABLED START -----#
@@ -339,16 +354,26 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         attr.set_value(self.attr_OffsetH_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.OffsetH_read
         
-    def write_OffsetH(self, attr):
-        self.debug_stream("In write_OffsetH()")
+    def read_OffsetH_expert(self, attr):
+        self.debug_stream("In read_OffsetH_expert()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.OffsetH_expert_read) ENABLED START -----#
+#        try:
+#            self.attr_OffsetH_read = self._bunchAnalyzer.ScopeDevice()['OffsetH'].read().value
+#        except:
+#            self.warn_stream("In read_OffsetH() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_OffsetH_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.OffsetH_expert_read
+        
+    def write_OffsetH_expert(self, attr):
+        self.debug_stream("In write_OffsetH_expert()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(FillingPatternFCT.OffsetH_write) ENABLED START -----#
+        #----- PROTECTED REGION ID(FillingPatternFCT.OffsetH_expert_write) ENABLED START -----#
         self.attr_OffsetH_read = float(data)
         try:
             self._bunchAnalyzer.ScopeDevice().write_attribute('OffsetH',self.attr_OffsetH_read)
         except:
             self.warn_stream("In write_OffsetH() cannot set in BunchAnalyzer()")
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.OffsetH_write
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.OffsetH_expert_write
         
     def read_ScaleH(self, attr):
         self.debug_stream("In read_ScaleH()")
@@ -360,16 +385,36 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         attr.set_value(self.attr_ScaleH_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.ScaleH_read
         
-    def write_ScaleH(self, attr):
-        self.debug_stream("In write_ScaleH()")
+    def read_ScaleH_expert(self, attr):
+        self.debug_stream("In read_ScaleH_expert()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.ScaleH_expert_read) ENABLED START -----#
+#        try:
+#            self.attr_ScaleH_read = self._bunchAnalyzer.ScopeDevice()['ScaleH'].read().value
+#        except:
+#            self.warn_stream("In read_ScaleH() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_ScaleH_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.ScaleH_expert_read
+        
+    def write_ScaleH_expert(self, attr):
+        self.debug_stream("In write_ScaleH_expert()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(FillingPatternFCT.ScaleH_write) ENABLED START -----#
+        #----- PROTECTED REGION ID(FillingPatternFCT.ScaleH_expert_write) ENABLED START -----#
         self.attr_ScaleH_read = float(data)
         try:
             self._bunchAnalyzer.ScopeDevice().write_attribute('ScaleH',self.attr_ScaleH_read)
         except:
             self.warn_stream("In write_ScaleH() cannot set in BunchAnalyzer()")
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.ScaleH_write
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.ScaleH_expert_write
+        
+    def read_SpuriousBunches(self, attr):
+        self.debug_stream("In read_SpuriousBunches()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.SpuriousBunches_read) ENABLED START -----#
+        try:
+            self.attr_SpuriousBunches_read = self._bunchAnalyzer.SpuriousBunches()
+        except:
+            self.warn_stream("In read_SpuriousBunches() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_SpuriousBunches_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.SpuriousBunches_read
         
     def read_StartingPoint(self, attr):
         self.debug_stream("In read_StartingPoint()")
@@ -381,10 +426,20 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         attr.set_value(self.attr_StartingPoint_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.StartingPoint_read
         
-    def write_StartingPoint(self, attr):
-        self.debug_stream("In write_StartingPoint()")
+    def read_StartingPoint_expert(self, attr):
+        self.debug_stream("In read_StartingPoint_expert()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.StartingPoint_expert_read) ENABLED START -----#
+        try:
+            self.attr_StartingPoint_read = self._bunchAnalyzer.StartingPoint()
+        except:
+            self.warn_stream("In read_StartingPoint() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_StartingPoint_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.StartingPoint_expert_read
+        
+    def write_StartingPoint_expert(self, attr):
+        self.debug_stream("In write_StartingPoint_expert()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(FillingPatternFCT.StartingPoint_write) ENABLED START -----#
+        #----- PROTECTED REGION ID(FillingPatternFCT.StartingPoint_expert_write) ENABLED START -----#
         if self._bunchAnalyzer != None and \
            int(data) > self._bunchAnalyzer.ScopeSampleRate():
             PyTango.Except.throw_exception("maximum reached",
@@ -402,7 +457,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self._bunchAnalyzer.StartingPoint(self.attr_StartingPoint_write)
         except:
             self.warn_stream("In write_StartingPoint() cannot set in BunchAnalyzer()")
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.StartingPoint_write
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.StartingPoint_expert_write
         
     def read_Threshold(self, attr):
         self.debug_stream("In read_Threshold()")
@@ -414,10 +469,20 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         attr.set_value(self.attr_Threshold_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Threshold_read
         
-    def write_Threshold(self, attr):
-        self.debug_stream("In write_Threshold()")
+    def read_Threshold_expert(self, attr):
+        self.debug_stream("In read_Threshold_expert()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.Threshold_expert_read) ENABLED START -----#
+        try:
+            self.attr_Threshold_read = self._bunchAnalyzer.Threshold()
+        except:
+            self.warn_stream("In read_Threshold() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_Threshold_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Threshold_expert_read
+        
+    def write_Threshold_expert(self, attr):
+        self.debug_stream("In write_Threshold_expert()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(FillingPatternFCT.Threshold_write) ENABLED START -----#
+        #----- PROTECTED REGION ID(FillingPatternFCT.Threshold_expert_write) ENABLED START -----#
         if float(data) > 100:
             PyTango.Except.throw_exception("maximum reached",
                                            "This value is a percentage",
@@ -434,7 +499,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self._bunchAnalyzer.Threshold(self.attr_Threshold_write)
         except:
             self.warn_stream("In write_Threshold() cannot set in BunchAnalyzer()")
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Threshold_write
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Threshold_expert_write
         
     def read_TimingTrigger(self, attr):
         self.debug_stream("In read_TimingTrigger()")
@@ -446,16 +511,40 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         attr.set_value(self.attr_TimingTrigger_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.TimingTrigger_read
         
-    def write_TimingTrigger(self, attr):
-        self.debug_stream("In write_TimingTrigger()")
+    def read_TimingTrigger_expert(self, attr):
+        self.debug_stream("In read_TimingTrigger_expert()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.TimingTrigger_expert_read) ENABLED START -----#
+        try:
+            self.attr_TimingTrigger_read = self._bunchAnalyzer.DelayTick()
+        except:
+            self.warn_stream("In read_TimingTrigger() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_TimingTrigger_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.TimingTrigger_expert_read
+        
+    def write_TimingTrigger_expert(self, attr):
+        self.debug_stream("In write_TimingTrigger_expert()")
         data=attr.get_write_value()
-        #----- PROTECTED REGION ID(FillingPatternFCT.TimingTrigger_write) ENABLED START -----#
+        #----- PROTECTED REGION ID(FillingPatternFCT.TimingTrigger_expert_write) ENABLED START -----#
         self.attr_TimingTrigger_read = int(data)
         try:
             self._bunchAnalyzer.DelayTick(self.attr_TimingTrigger_read)
         except:
             self.warn_stream("In write_TimingTrigger() cannot set in BunchAnalyzer()")
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.TimingTrigger_write
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.TimingTrigger_expert_write
+        
+    def read_emitCyclicBuffer(self, attr):
+        self.debug_stream("In read_emitCyclicBuffer()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.emitCyclicBuffer_read) ENABLED START -----#
+        attr.set_value(self.attr_emitCyclicBuffer_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.emitCyclicBuffer_read
+        
+    def write_emitCyclicBuffer(self, attr):
+        self.debug_stream("In write_emitCyclicBuffer()")
+        data=attr.get_write_value()
+        #----- PROTECTED REGION ID(FillingPatternFCT.emitCyclicBuffer_write) ENABLED START -----#
+        self.attr_emitCyclicBuffer_read = bool(data)
+        self.set_change_event('cyclicBuffer',self.attr_emitCyclicBuffer_read,False)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.emitCyclicBuffer_write
         
     def read_nAcquisitions(self, attr):
         self.debug_stream("In read_nAcquisitions()")
@@ -495,50 +584,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.warn_stream("In write_nAcquisitions() cannot set in BunchAnalyzer()")
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nAcquisitions_write
         
-    def read_FilledBunches(self, attr):
-        self.debug_stream("In read_FilledBunches()")
-        #----- PROTECTED REGION ID(FillingPatternFCT.FilledBunches_read) ENABLED START -----#
-        try:
-            self.attr_FilledBunches_read = self._bunchAnalyzer.FilledBunches()
-        except:
-            self.warn_stream("In read_FilledBunches() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_FilledBunches_read)
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.FilledBunches_read
-        
-    def read_SpuriousBunches(self, attr):
-        self.debug_stream("In read_SpuriousBunches()")
-        #----- PROTECTED REGION ID(FillingPatternFCT.SpuriousBunches_read) ENABLED START -----#
-        try:
-            self.attr_SpuriousBunches_read = self._bunchAnalyzer.SpuriousBunches()
-        except:
-            self.warn_stream("In read_SpuriousBunches() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_SpuriousBunches_read)
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.SpuriousBunches_read
-        
-    def read_resultingFrequency(self, attr):
-        self.debug_stream("In read_resultingFrequency()")
-        #----- PROTECTED REGION ID(FillingPatternFCT.resultingFrequency_read) ENABLED START -----#
-        try:
-            self.attr_resultingFrequency_read = self._bunchAnalyzer.ResultingFrequency()
-        except:
-            self.warn_stream("In read_resultingFrequency() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_resultingFrequency_read)
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.resultingFrequency_read
-        
-    def read_emitCyclicBuffer(self, attr):
-        self.debug_stream("In read_emitCyclicBuffer()")
-        #----- PROTECTED REGION ID(FillingPatternFCT.emitCyclicBuffer_read) ENABLED START -----#
-        attr.set_value(self.attr_emitCyclicBuffer_read)
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.emitCyclicBuffer_read
-        
-    def write_emitCyclicBuffer(self, attr):
-        self.debug_stream("In write_emitCyclicBuffer()")
-        data=attr.get_write_value()
-        #----- PROTECTED REGION ID(FillingPatternFCT.emitCyclicBuffer_write) ENABLED START -----#
-        self.attr_emitCyclicBuffer_read = bool(data)
-        self.set_change_event('cyclicBuffer',self.attr_emitCyclicBuffer_read,False)
-        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.emitCyclicBuffer_write
-        
     def read_nBunches(self, attr):
         self.debug_stream("In read_nBunches()")
         #----- PROTECTED REGION ID(FillingPatternFCT.nBunches_read) ENABLED START -----#
@@ -550,6 +595,16 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         attr.set_value(self.attr_nBunches_read)
         
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nBunches_read
+        
+    def read_resultingFrequency(self, attr):
+        self.debug_stream("In read_resultingFrequency()")
+        #----- PROTECTED REGION ID(FillingPatternFCT.resultingFrequency_read) ENABLED START -----#
+        try:
+            self.attr_resultingFrequency_read = self._bunchAnalyzer.ResultingFrequency()
+        except:
+            self.warn_stream("In read_resultingFrequency() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_resultingFrequency_read)
+        #----- PROTECTED REGION END -----#	//	FillingPatternFCT.resultingFrequency_read
         
     def read_BunchIntensity(self, attr):
         self.debug_stream("In read_BunchIntensity()")
@@ -682,11 +737,30 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
 
     #    Attribute definitions
     attr_list = {
+        'FilledBunches':
+            [[PyTango.DevULong,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Filled Bunches",
+            } ],
         'OffsetH':
+            [[PyTango.DevDouble,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Oscilloscope Horizontal Offset",
+                'unit': "s",
+                'format': "%3.9f",
+                'description': "Oscilloscope Horizontal Offset",
+                'Display level': PyTango.DispLevel.EXPERT,
+            } ],
+        'OffsetH_expert':
             [[PyTango.DevDouble,
             PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
+                'label': "Oscilloscope Horizontal Offset",
                 'unit': "s",
                 'format': "%3.9f",
                 'description': "Oscilloscope Horizontal Offset",
@@ -696,27 +770,66 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
         'ScaleH':
             [[PyTango.DevDouble,
             PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Oscilloscope Horizontal Scale",
+                'unit': "s/div",
+                'format': "%3.9f",
+                'description': "Oscilloscope Horizontal Scale",
+                'Display level': PyTango.DispLevel.EXPERT,
+            } ],
+        'ScaleH_expert':
+            [[PyTango.DevDouble,
+            PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
+                'label': "Oscilloscope Horizontal Scale",
                 'unit': "s/div",
                 'format': "%3.9f",
                 'description': "Oscilloscope Horizontal Scale",
                 'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
             } ],
+        'SpuriousBunches':
+            [[PyTango.DevULong,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Spurious Bunches",
+            } ],
         'StartingPoint':
+            [[PyTango.DevLong,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Starting Point",
+                'Display level': PyTango.DispLevel.EXPERT,
+            } ],
+        'StartingPoint_expert':
             [[PyTango.DevLong,
             PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
+                'label': "Starting Point",
                 'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
             } ],
         'Threshold':
             [[PyTango.DevDouble,
             PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Threshold",
+                'unit': "%",
+                'max value': "100",
+                'min value': "0",
+            } ],
+        'Threshold_expert':
+            [[PyTango.DevDouble,
+            PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
+                'label': "Threshold",
                 'unit': "%",
                 'max value': "100",
                 'min value': "0",
@@ -725,37 +838,21 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
         'TimingTrigger':
             [[PyTango.DevULong,
             PyTango.SCALAR,
-            PyTango.READ_WRITE],
-            {
-                'unit': "ticks",
-                'Display level': PyTango.DispLevel.EXPERT,
-                'Memorized':"true_without_hard_applied"
-            } ],
-        'nAcquisitions':
-            [[PyTango.DevUShort,
-            PyTango.SCALAR,
-            PyTango.READ_WRITE],
-            {
-                'description': "Number of elements in the cyclic buffer from where the calculation takes the data.",
-                'Memorized':"true"
-            } ],
-        'FilledBunches':
-            [[PyTango.DevULong,
-            PyTango.SCALAR,
-            PyTango.READ]],
-        'SpuriousBunches':
-            [[PyTango.DevULong,
-            PyTango.SCALAR,
-            PyTango.READ]],
-        'resultingFrequency':
-            [[PyTango.DevDouble,
-            PyTango.SCALAR,
             PyTango.READ],
             {
-                'unit': "Hz",
-                'format': "%3.3f",
-                'description': "Expert attribute to read the frequency with this device is pushing results in the output",
+                'label': "TimingTrigger",
+                'unit': "ticks",
                 'Display level': PyTango.DispLevel.EXPERT,
+            } ],
+        'TimingTrigger_expert':
+            [[PyTango.DevULong,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE],
+            {
+                'label': "Timing Trigger",
+                'unit': "ticks",
+                'Display level': PyTango.DispLevel.EXPERT,
+                'Memorized':"true"
             } ],
         'emitCyclicBuffer':
             [[PyTango.DevBoolean,
@@ -766,12 +863,32 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
             } ],
+        'nAcquisitions':
+            [[PyTango.DevUShort,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE],
+            {
+                'label': "Number of acquisitions",
+                'description': "Number of elements in the cyclic buffer from where the calculation takes the data.",
+                'Memorized':"true"
+            } ],
         'nBunches':
             [[PyTango.DevULong,
             PyTango.SCALAR,
             PyTango.READ],
             {
                 'label': "Number of Bunches",
+            } ],
+        'resultingFrequency':
+            [[PyTango.DevDouble,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Resulting Frequency",
+                'unit': "Hz",
+                'format': "%3.3f",
+                'description': "Expert attribute to read the frequency with this device is pushing results in the output",
+                'Display level': PyTango.DispLevel.EXPERT,
             } ],
         'BunchIntensity':
             [[PyTango.DevDouble,
