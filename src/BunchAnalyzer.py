@@ -84,10 +84,11 @@ class Attribute:
             self.__devProxy = PyTango.DeviceProxy(devName)
             self.__attrValue = self.__devProxy[attrName].value
             self.__attrEvent = None
-            self.subscribe_event()
             self.__callback = callback
+            self.subscribe_event()
         except Exception,e:
             print("Attribute %s/%s init exception %s"%(devName,attrName,e))
+        self.debug("Attribute %s/%s init done"%(devName,attrName))
     def debug(self,msg):
         try: self.debug_stream("In %s Attribute %s"%(self.__name,msg))
         except: print("%s::debug: %s"%(self.__name,msg))
@@ -99,11 +100,13 @@ class Attribute:
         except: print("%s::error: %s"%(self.__name,msg))
     def subscribe_event(self):
         try:
-            self.__attrEvent = self.__devProxy.subscribe_event(attrName,
+            self.__attrEvent = self.__devProxy.subscribe_event(self.__attrName,
                                                                PyTango.EventType.CHANGE_EVENT,
                                                                self)
-        except:
-            pass
+        except Exception,e:
+            self.error("%s::subscribe_event() exception %s:"%(self.__name,e))
+        else:
+            self.debug("%s::subscribe_event() subscribed"%(self.__name))
     def unsubscribe_event(self):
         if self.__attrEvent != None:
             self.__devProxy.unsubscribe_event(self.__attrEvent)
@@ -111,9 +114,9 @@ class Attribute:
         try:
             if event != None:
                 if event.attr_value != None and event.attr_value.value != None:
-                    self.debug("%s::PushEvent() %s: array of %d elements"
+                    self.debug("%s::PushEvent() %s: %d"
                                %(self.__name,event.attr_name,
-                                 event.attr_value.value.size))
+                                 event.attr_value.value))
                 else:
                     self.debug("%s::PushEvent() %s: value has None type"
                                %(self.__name,event.attr_name))
@@ -135,6 +138,7 @@ class Attribute:
             self.__devProxy[self.__attrName] = value
         except:
             self.warn("This is not a write value")
+            self.__attrValue = value
 
 class BunchAnalyzer:
     def __init__(self,parent=None,
@@ -147,11 +151,12 @@ class BunchAnalyzer:
         try:
             self._timingDevName = timingDevName
             self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
-        except Exception,e:
+        except:
             self._timingDevName = ""
             self._timingProxy = None
         self._timingoutput = timingoutput
         self._delayTick = delayTick
+        self.debug("BunchAnalyzer.__init__() timming ok")
         #---- scope
         try:
             self._scopeDevName = scopeDevName
@@ -164,10 +169,11 @@ class BunchAnalyzer:
                                               error_stream=self.error)
             #TODO: replace the current subscription to the channel1
         except Exception,e:
-            self.error("BunchAnalyzer.__init__() exception: %s"%(e))
+            self.error("BunchAnalyzer.__init__() exception: %s"%(str(e)))
             self._scopeDevName = ""
             self._scopeProxy = None
             self._scopeSampleRate = None
+        self.debug("BunchAnalyzer.__init__() scope ok")
         #---- RF
         try:
             self._rfFrequency = Attribute(devName='SR09/rf/sgn-01',#FIXME: avoid hardcoding
@@ -177,6 +183,7 @@ class BunchAnalyzer:
                                           error_stream=self.error)
         except Exception,e:
             self._rfFrequency = None#499650374.85
+        self.debug("BunchAnalyzer.__init__() RF ok")
         #---- dcct
         try:
             self._currentAttr = Attribute(devName='SR/DI/DCCT',#FIXME: avoid hardcoding
@@ -187,6 +194,7 @@ class BunchAnalyzer:
             
         except Exception,e:
             self._currentAttr = None
+        self.debug("BunchAnalyzer.__init__() DCCT ok")
         #---- internals
         self._threshold = threshold
         self._nAcquisitions = nAcquisitions
@@ -341,7 +349,7 @@ class BunchAnalyzer:
         #if the size of the elements in the buffer have changed, restart them
         if len(self._cyclicBuffer) > 0:
             if len(self._cyclicBuffer[0]) != len(event.attr_value.value):
-                self.ScopeSampleRate(len(event.attr_value.value))
+                self._cyclicBuffer = []
         #populate the cyclicBuffer
         self._cyclicBuffer.append(event.attr_value.value)
         #state changes between STANDBY<->ON when the len(cyclicBuffer)<nAcquitions
