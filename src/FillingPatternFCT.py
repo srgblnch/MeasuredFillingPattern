@@ -753,7 +753,6 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'unit': "s",
                 'format': "%3.9f",
                 'description': "Oscilloscope Horizontal Offset",
-                'Display level': PyTango.DispLevel.EXPERT,
             } ],
         'OffsetH_expert':
             [[PyTango.DevDouble,
@@ -776,7 +775,6 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'unit': "s/div",
                 'format': "%3.9f",
                 'description': "Oscilloscope Horizontal Scale",
-                'Display level': PyTango.DispLevel.EXPERT,
             } ],
         'ScaleH_expert':
             [[PyTango.DevDouble,
@@ -803,7 +801,6 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
             PyTango.READ],
             {
                 'label': "Starting Point",
-                'Display level': PyTango.DispLevel.EXPERT,
             } ],
         'StartingPoint_expert':
             [[PyTango.DevLong,
@@ -842,7 +839,6 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
             {
                 'label': "TimingTrigger",
                 'unit': "ticks",
-                'Display level': PyTango.DispLevel.EXPERT,
             } ],
         'TimingTrigger_expert':
             [[PyTango.DevULong,
