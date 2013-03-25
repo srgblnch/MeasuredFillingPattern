@@ -168,6 +168,18 @@ class BunchAnalyzer:
                                               warn_stream=self.warn,
                                               error_stream=self.error)
             #TODO: replace the current subscription to the channel1
+            self._scopeScaleH = Attribute(devName=scopeDevName,
+                                          attrName='ScaleH',
+                                          callback=self.cbScopeScaleH,
+                                          debug_stream=self.debug,
+                                          warn_stream=self.warn,
+                                          error_stream=self.error)
+            self._scopeOffsetH = Attribute(devName=scopeDevName,
+                                           attrName='OffsetH',
+                                           callback=self.cbScopeOffsetH,
+                                           debug_stream=self.debug,
+                                           warn_stream=self.warn,
+                                           error_stream=self.error)
         except Exception,e:
             self.error("BunchAnalyzer.__init__() exception: %s"%(str(e)))
             self._scopeDevName = ""
@@ -257,6 +269,20 @@ class BunchAnalyzer:
                 #maintaining its ratio
                 #if value 2e10 and was 4e10, divide by 2 (multiply by a half)
                 #if value 4e10 and was 2e10, multiply by 2
+    def ScopeScaleH(self,value=None):
+        if value==None: return self._scopeScaleH.getValue()
+        else: self._scopeScaleH.setValue(value)
+    def cbScopeScaleH(self,value):
+        if self._scopeScaleH.getValue() != value:
+            self.debug("Horizontal Scale changed: clean the cyclic buffer")
+            self.CyclicBuffer([])
+    def ScopeOffsetH(self,value=None):
+        if value==None: return self._scopeOffsetH.getValue()
+        else: self._scopeOffsetH.setValue(value)
+    def cbScopeOffsetH(self,value):
+        if self._scopeOffsetH.getValue() != value:
+            self.debug("Horizontal Offset changed: clean the cyclic buffer")
+            self.CyclicBuffer([])
     #----##RF
     def RfFrequency(self,value=None):
         if value == None: return self._rfFrequency.getValue()
