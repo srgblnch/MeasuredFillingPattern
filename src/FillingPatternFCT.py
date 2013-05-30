@@ -592,6 +592,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
                                       self._bunchAnalyzer.SpuriousBunches()
         except:
             self.warn_stream("In read_nBunches() cannot get from BunchAnalyzer()")
+        if self.attr_nBunches_read < 0:attr.set_value(0)
         attr.set_value(self.attr_nBunches_read)
         
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nBunches_read
