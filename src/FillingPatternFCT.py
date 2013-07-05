@@ -741,7 +741,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
     #    Attribute definitions
     attr_list = {
         'FilledBunches':
-            [[PyTango.DevULong,
+            [[PyTango.DevShort,
             PyTango.SCALAR,
             PyTango.READ],
             {
@@ -792,21 +792,21 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'Memorized':"true"
             } ],
         'SpuriousBunches':
-            [[PyTango.DevULong,
+            [[PyTango.DevShort,
             PyTango.SCALAR,
             PyTango.READ],
             {
                 'label': "Spurious Bunches",
             } ],
         'StartingPoint':
-            [[PyTango.DevLong,
+            [[PyTango.DevShort,
             PyTango.SCALAR,
             PyTango.READ],
             {
                 'label': "Starting Point",
             } ],
         'StartingPoint_expert':
-            [[PyTango.DevLong,
+            [[PyTango.DevShort,
             PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
@@ -833,10 +833,11 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'unit': "%",
                 'max value': "100",
                 'min value': "0",
+                'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
             } ],
         'TimingTrigger':
-            [[PyTango.DevULong,
+            [[PyTango.DevShort,
             PyTango.SCALAR,
             PyTango.READ],
             {
@@ -844,7 +845,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'unit': "ticks",
             } ],
         'TimingTrigger_expert':
-            [[PyTango.DevULong,
+            [[PyTango.DevShort,
             PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
@@ -872,7 +873,7 @@ class FillingPatternFCTClass(PyTango.DeviceClass):
                 'Memorized':"true"
             } ],
         'nBunches':
-            [[PyTango.DevULong,
+            [[PyTango.DevShort,
             PyTango.SCALAR,
             PyTango.READ],
             {
