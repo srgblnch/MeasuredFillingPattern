@@ -129,7 +129,7 @@ class Attribute:
             else:
                 self.__attrValue = event.attr_value.value
         except Exception,e:
-            self.error("%s::PushEvent() callback exception %s:"
+            self.error("%s::PushEvent() callback exception: %s"
                        %(self.__name,e))
     def getValue(self):
         return self.__attrValue
@@ -252,11 +252,15 @@ class BunchAnalyzer:
             self._scopeDevName = name
             self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
     def ScopeDevice(self,value=None):
-        if value == None: return self._scopeProxy
-        else: raise ValueError("Use by ScopeDevName()")
+        if value == None:
+            return self._scopeProxy
+        else:
+            raise ValueError("Use by ScopeDevName()")
     def ScopeSampleRate(self,value=None):
-        if value==None: return self._scopeSampleRate.getValue()
-        else: raise AttributeError("read only attribute")
+        if value==None:
+            return self._scopeSampleRate.getValue()
+        else:
+            raise AttributeError("read only attribute")
     def cbScopeSampleRate(self,value):
         #The buffer cannot contain different length of the waveforms
         self.debug("Sample rate event: ¿%6.3f == %6.3f?"%(self._scopeSampleRate.getValue(),value))
@@ -277,15 +281,19 @@ class BunchAnalyzer:
                 #if value 4e10 and was 2e10, multiply by 2
             self._scopeSampleRate.setValue(value)
     def ScopeScaleH(self,value=None):
-        if value==None: return self._scopeScaleH.getValue()
-        else: self._scopeScaleH.setValue(value)
+        if value==None:
+            return self._scopeScaleH.getValue()
+        else:
+            self._scopeScaleH.setValue(value)
     def cbScopeScaleH(self,value):
         if self._scopeScaleH.getValue() != value:
             self.debug("Horizontal Scale changed: clean the cyclic buffer")
             self.CyclicBuffer([])
     def ScopeOffsetH(self,value=None):
-        if value==None: return self._scopeOffsetH.getValue()
-        else: self._scopeOffsetH.setValue(value)
+        if value==None:
+            return self._scopeOffsetH.getValue()
+        else:
+            self._scopeOffsetH.setValue(value)
     def cbScopeOffsetH(self,value):
         if self._scopeOffsetH.getValue() != value:
             self.debug("Horizontal Offset changed: clean the cyclic buffer")
@@ -442,8 +450,8 @@ class BunchAnalyzer:
         x = range(len(y))
         #the calculation itself
         try:
-#            self.debug("input to lowPassFilter = %s"%(y.tolist()))
-            self._yFiltered = self.lowPassFilter(SampRate, time_win, start,
+#            self.debug("input to bandPassFilter = %s"%(y.tolist()))
+            self._yFiltered = self.bandPassFilter(SampRate, time_win, start,
                                                       CutOffFreq, x, y, secperbin)
             #print(time_win)
             p2p = self.peakToPeak(time_win, x)
@@ -507,7 +515,7 @@ class BunchAnalyzer:
             self._timingProxy.command_inout("SetPulseParams",pulse_params)
         return pulse_params[1]
 
-    def lowPassFilter(self,Samp_Rate, Time_Windows,Start, Cut_Off_Freq, 
+    def bandPassFilter(self,Samp_Rate, Time_Windows,Start, Cut_Off_Freq, 
                              x_data, y_data, Secperbin):
         '''TODO: document this method'''
         self.debug("lowPassFiler(SampleRate=%6.3f,Time window=%d,Start=%d,"\
@@ -519,9 +527,10 @@ class BunchAnalyzer:
             #cutoff frequency at 0.05 Hz normalized at the Niquist frequency (1/2 samp rate)
             CutOffFreqNq = Cut_Off_Freq*10**6/(Samp_Rate*0.5)
             LowFreq = 499*10**6/(Samp_Rate*0.5)
-            HighFreq = 501*10**6/(Samp_Rate*0.5)
+            #HighFreq = 501*10**6/(Samp_Rate*0.5)
             filterorder = 3            # filter order = amount of additional attenuation for frequencies higher than the cutoff fr.
-            b,a = signal.filter_design.butter(filterorder,[LowFreq,HighFreq])
+            #b,a = signal.filter_design.butter(filterorder,[LowFreq,HighFreq])
+            b,a = signal.filter_design.butter(filterorder,[LowFreq])
 
             y_Fil = copy(y_data)#FIXME: why this assignment if it will be reassigned before use it.
             try:
@@ -551,7 +560,7 @@ class BunchAnalyzer:
         except BufferError,e:
             raise BufferError(e)
         except Exception,e:
-            self.error("BunchAnalyzer.lowPassFilter() Exception: %s"%(e))
+            self.error("BunchAnalyzer.bandPassFilter() Exception: %s"%(e))
 
     def peakToPeak(self,Time_Window, x_data, y_Fil=None):
         '''TODO: document this method'''
@@ -759,7 +768,7 @@ def main():
     
     ################################################ Filtering Data #######################################################
         
-    y_fil = bunchAnalyzer.lowPassFilter(SampRate, time_win, start, CutOffFreq, x, y, secperbin)
+    y_fil = bunchAnalyzer.bandPassFilter(SampRate, time_win, start, CutOffFreq, x, y, secperbin)
     plot1(x[:len(y_fil)],y[:len(y_fil)],y_fil)
     plot2(x[:len(y_fil)],y_fil)
     
