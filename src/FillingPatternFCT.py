@@ -361,7 +361,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.attr_FilledBunches_read = self._bunchAnalyzer.FilledBunches()
         except:
             self.warn_stream("In read_FilledBunches() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_FilledBunches_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.FilledBunches_read
         attr.set_value(self.attr_FilledBunches_read)
         
@@ -457,7 +456,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.attr_SpuriousBunches_read = self._bunchAnalyzer.SpuriousBunches()
         except:
             self.warn_stream("In read_SpuriousBunches() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_SpuriousBunches_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.SpuriousBunches_read
         attr.set_value(self.attr_SpuriousBunches_read)
         
@@ -471,7 +469,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.attr_StartingPoint_read = self._bunchAnalyzer.StartingPoint()
         except:
             self.warn_stream("In read_StartingPoint() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_StartingPoint_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.StartingPoint_read
         attr.set_value(self.attr_StartingPoint_read)
         
@@ -482,10 +479,9 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.debug_stream("In " + self.get_name() + ".read_StartingPoint_expert()")
         #----- PROTECTED REGION ID(FillingPatternFCT.StartingPoint_expert_read) ENABLED START -----#
         try:
-            self.attr_StartingPoint_read = self._bunchAnalyzer.StartingPoint()
+            self.attr_StartingPoint_expert_read = self._bunchAnalyzer.StartingPoint()
         except:
             self.warn_stream("In read_StartingPoint() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_StartingPoint_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.StartingPoint_expert_read
         attr.set_value(self.attr_StartingPoint_expert_read)
         
@@ -526,7 +522,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.attr_Threshold_read = self._bunchAnalyzer.Threshold()
         except:
             self.warn_stream("In read_Threshold() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_Threshold_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Threshold_read
         attr.set_value(self.attr_Threshold_read)
         
@@ -537,10 +532,9 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         self.debug_stream("In " + self.get_name() + ".read_Threshold_expert()")
         #----- PROTECTED REGION ID(FillingPatternFCT.Threshold_expert_read) ENABLED START -----#
         try:
-            self.attr_Threshold_read = self._bunchAnalyzer.Threshold()
+            self.attr_Threshold_expert_read = self._bunchAnalyzer.Threshold()
         except:
             self.warn_stream("In read_Threshold() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_Threshold_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.Threshold_expert_read
         attr.set_value(self.attr_Threshold_expert_read)
         
@@ -594,7 +588,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.attr_TimingTrigger_read = self._bunchAnalyzer.DelayTick()
         except:
             self.warn_stream("In read_TimingTrigger() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_TimingTrigger_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.TimingTrigger_expert_read
         attr.set_value(self.attr_TimingTrigger_expert_read)
         
@@ -619,7 +612,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
     def read_emitCyclicBuffer(self, attr):
         self.debug_stream("In " + self.get_name() + ".read_emitCyclicBuffer()")
         #----- PROTECTED REGION ID(FillingPatternFCT.emitCyclicBuffer_read) ENABLED START -----#
-        attr.set_value(self.attr_emitCyclicBuffer_read)
+        
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.emitCyclicBuffer_read
         attr.set_value(self.attr_emitCyclicBuffer_read)
         
@@ -653,7 +646,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
         else:
             attr.set_value(self.attr_nAcquisitions_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nAcquisitions_read
-        attr.set_value(self.attr_nAcquisitions_read)
+        #attr.set_value(self.attr_nAcquisitions_read)
         
 #------------------------------------------------------------------
 #    Write nAcquisitions attribute
@@ -698,7 +691,7 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             attr.set_value(self.attr_nBunches_read)
         
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.nBunches_read
-        attr.set_value(self.attr_nBunches_read)
+        #attr.set_value(self.attr_nBunches_read)
         
 #------------------------------------------------------------------
 #    Read resultingFrequency attribute
@@ -710,7 +703,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.attr_resultingFrequency_read = self._bunchAnalyzer.ResultingFrequency()
         except:
             self.warn_stream("In read_resultingFrequency() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_resultingFrequency_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.resultingFrequency_read
         attr.set_value(self.attr_resultingFrequency_read)
         
@@ -724,7 +716,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.attr_BunchIntensity_read = self._bunchAnalyzer.BunchIntensity()
         except:
             self.warn_stream("In read_BunchIntensity() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_BunchIntensity_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.BunchIntensity_read
         attr.set_value(self.attr_BunchIntensity_read)
         
@@ -748,7 +739,6 @@ class FillingPatternFCT (PyTango.Device_4Impl):
             self.attr_cyclicBuffer_read = self._bunchAnalyzer.CyclicBuffer()
         except:
             self.warn_stream("In read_cyclicBuffer() cannot get from BunchAnalyzer()")
-        attr.set_value(self.attr_cyclicBuffer_read)
         #----- PROTECTED REGION END -----#	//	FillingPatternFCT.cyclicBuffer_read
         attr.set_value(self.attr_cyclicBuffer_read)
         
