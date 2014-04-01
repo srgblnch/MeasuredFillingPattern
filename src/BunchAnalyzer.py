@@ -72,71 +72,77 @@ from scipy import signal
 import PyTango
 
 class Attribute:
-    def __init__(self,devName='SR/DI/DCCT',attrName='AverageCurrent',callback=None,
-                 error_stream=None,warn_stream=None,debug_stream=None):
+    def __init__(self,devName='SR/DI/DCCT',attrName='AverageCurrent',
+                 callback=None,
+                 info_stream=None,error_stream=None,
+                 warn_stream=None,debug_stream=None):
         try:
-            self.__devName = devName
-            self.__attrName = attrName
-            self.__name = devName+'/'+attrName
+            self._devName = devName
+            self._attrName = attrName
+            self._name = devName+'/'+attrName
+            self.info_stream = info_stream
             self.debug_stream = debug_stream
             self.warn_stream = warn_stream
             self.error_stream = error_stream
-            self.__devProxy = PyTango.DeviceProxy(devName)
-            self.__attrValue = self.__devProxy[attrName].value
-            self.__attrEvent = None
-            self.__callback = callback
+            self._devProxy = PyTango.DeviceProxy(devName)
+            self._attrValue = self._devProxy[attrName].value
+            self._attrEvent = None
+            self._callback = callback
             self.subscribe_event()
         except Exception,e:
             print("Attribute %s/%s init exception %s"%(devName,attrName,e))
         self.debug("Attribute %s/%s init done"%(devName,attrName))
+    def info(self,msg):
+        try: self.info_stream("In %s Attribute %s"%(self._name,msg))
+        except: print("%s::info: %s"%(self._name,msg))
     def debug(self,msg):
-        try: self.debug_stream("In %s Attribute %s"%(self.__name,msg))
-        except: print("%s::debug: %s"%(self.__name,msg))
+        try: self.debug_stream("In %s Attribute %s"%(self._name,msg))
+        except: print("%s::debug: %s"%(self._name,msg))
     def warn(self,msg):
-        try: self.warn_stream("In %s Attribute %s"%(self.__name,msg))
-        except: print("%s::warn:  %s"%(self.__name,msg))
+        try: self.warn_stream("In %s Attribute %s"%(self._name,msg))
+        except: print("%s::warn:  %s"%(self._name,msg))
     def error(self,msg):
-        try: self.error_stream("In %s Attribute %s"%(self.__name,msg))
-        except: print("%s::error: %s"%(self.__name,msg))
+        try: self.error_stream("In %s Attribute %s"%(self._name,msg))
+        except: print("%s::error: %s"%(self._name,msg))
     def subscribe_event(self):
         try:
-            self.__attrEvent = self.__devProxy.subscribe_event(self.__attrName,
-                                                               PyTango.EventType.CHANGE_EVENT,
+            self._attrEvent = self._devProxy.subscribe_event(self._attrName,
+                                                PyTango.EventType.CHANGE_EVENT,
                                                                self)
         except Exception,e:
-            self.error("%s::subscribe_event() exception %s:"%(self.__name,e))
+            self.error("%s::subscribe_event() exception %s:"%(self._name,e))
         else:
-            self.debug("%s::subscribe_event() subscribed"%(self.__name))
+            self.debug("%s::subscribe_event() subscribed"%(self._name))
     def unsubscribe_event(self):
-        if self.__attrEvent != None:
-            self.__devProxy.unsubscribe_event(self.__attrEvent)
+        if self._attrEvent != None:
+            self._devProxy.unsubscribe_event(self._attrEvent)
     def push_event(self,event):
         try:
             if event != None:
                 if event.attr_value != None and event.attr_value.value != None:
-                    self.debug("%s::PushEvent() %s: %d"
-                               %(self.__name,event.attr_name,
+                    self.debug("%s::PushEvent() %s: %s"
+                               %(self._name,event.attr_name,
                                  event.attr_value.value))
                 else:
-                    self.debug("%s::PushEvent() %s: value has None type"
-                               %(self.__name,event.attr_name))
+                    self.warn("%s::PushEvent() %s: value has None type"
+                               %(self._name,event.attr_name))
         except Exception,e:
-            self.error("%s::PushEvent() exception %s:"%(self.__name,e))
+            self.error("%s::PushEvent() exception %s:"%(self._name,e))
         try:#when there is a callback, it's responsible to store the new value
-            if self.__callback != None:
-                self.debug("%s::PushEvent() callback called"%(self.__name))
-                self.__callback(event.attr_value.value)
+            if self._callback != None:
+                self.debug("%s::PushEvent() callback called"%(self._name))
+                self._callback(event.attr_value.value)
             else:
-                self.__attrValue = event.attr_value.value
+                self._attrValue = event.attr_value.value
         except Exception,e:
             self.error("%s::PushEvent() callback exception: %s"
-                       %(self.__name,e))
+                       %(self._name,e))
     def getValue(self):
-        return self.__attrValue
+        return self._attrValue
     def setValue(self,value):
-        self.__attrValue = value
+        self._attrValue = value
         try:
-            self.__devProxy[self.__attrName] = value
+            self._devProxy[self._attrName] = value
         except:
             self.warn("This is not a write value")
 
@@ -164,6 +170,7 @@ class BunchAnalyzer:
             self._scopeSampleRate = Attribute(devName=scopeDevName,
                                               attrName='CurrentSampleRate',
                                               callback=self.cbScopeSampleRate,
+                                              info_stream=self.info,
                                               debug_stream=self.debug,
                                               warn_stream=self.warn,
                                               error_stream=self.error)
@@ -171,12 +178,14 @@ class BunchAnalyzer:
             self._scopeScaleH = Attribute(devName=scopeDevName,
                                           attrName='ScaleH',
                                           callback=self.cbScopeScaleH,
+                                          info_stream=self.info,
                                           debug_stream=self.debug,
                                           warn_stream=self.warn,
                                           error_stream=self.error)
             self._scopeOffsetH = Attribute(devName=scopeDevName,
                                            attrName='OffsetH',
                                            callback=self.cbScopeOffsetH,
+                                           info_stream=self.info,
                                            debug_stream=self.debug,
                                            warn_stream=self.warn,
                                            error_stream=self.error)
@@ -188,7 +197,8 @@ class BunchAnalyzer:
         self.debug("BunchAnalyzer.__init__() scope ok")
         #---- RF
         try:
-            self._rfFrequency = Attribute(devName='SR09/rf/sgn-01',#FIXME: avoid hardcoding
+            #FIXME: avoid hardcoding
+            self._rfFrequency = Attribute(devName='SR09/rf/sgn-01',
                                           attrName='Frequency',
                                           debug_stream=self.debug,
                                           warn_stream=self.warn,
@@ -198,7 +208,8 @@ class BunchAnalyzer:
         self.debug("BunchAnalyzer.__init__() RF ok")
         #---- dcct
         try:
-            self._currentAttr = Attribute(devName='SR/DI/DCCT',#FIXME: avoid hardcoding
+            #FIXME: avoid hardcoding
+            self._currentAttr = Attribute(devName='SR/DI/DCCT',
                                           attrName='AverageCurrent',
                                           debug_stream=self.debug,
                                           warn_stream=self.warn,
@@ -211,6 +222,7 @@ class BunchAnalyzer:
         self._threshold = threshold
         self._nAcquisitions = nAcquisitions
         self._cyclicBuffer = cyclicBuffer
+        self._cyclicBufferTracer("buffer initialised")
         self._t0 = []
         self._tf = []
         self._startingPoint = startingPoint
@@ -263,41 +275,49 @@ class BunchAnalyzer:
             raise AttributeError("read only attribute")
     def cbScopeSampleRate(self,value):
         #The buffer cannot contain different length of the waveforms
-        self.debug("Sample rate event: ¿%6.3f == %6.3f?"%(self._scopeSampleRate.getValue(),value))
-        if self._scopeSampleRate.getValue() != value:
-            self.debug("Sample rate changed: clean the cyclic buffer")
-            self.CyclicBuffer([])
-            if self.StartingPoint() != 0:
-                oldStartingPoint = self.StartingPoint()
-                self.debug("Sample rate changed: update the starting point (was:%d)"%oldStartingPoint)
-                relation = (value/self._scopeSampleRate.getValue())
-                self.debug("Sample rate changed: relation %6.3f"%relation)
-                newStartingPoint = oldStartingPoint * relation
-                self.debug("Sample rate changed: update the starting point (set:%d)"%newStartingPoint)
-                self.StartingPoint(newStartingPoint)
-                #this increases or reduces the starting point 
-                #maintaining its ratio
-                #if value 2e10 and was 4e10, divide by 2 (multiply by a half)
-                #if value 4e10 and was 2e10, multiply by 2
-            self._scopeSampleRate.setValue(value)
+        if hasattr(self,'_scopeSampleRate'):
+            self.debug("Sample rate event: ¿%6.3f == %6.3f?"
+                       %(self._scopeSampleRate.getValue(),value))
+            if self._scopeSampleRate.getValue() != value:
+                self.debug("Sample rate changed: clean the cyclic buffer")
+                self.CyclicBuffer([])
+                if self.StartingPoint() != 0:
+                    oldStartingPoint = self.StartingPoint()
+                    self.debug("Sample rate changed: update the starting "\
+                               "point (was:%d)"%oldStartingPoint)
+                    relation = (value/self._scopeSampleRate.getValue())
+                    self.debug("Sample rate changed: relation %6.3f"%relation)
+                    newStartingPoint = oldStartingPoint * relation
+                    self.debug("Sample rate changed: update the starting "\
+                               "point (set:%d)"%newStartingPoint)
+                    self.StartingPoint(newStartingPoint)
+                    #this increases or reduces the starting point 
+                    #maintaining its ratio
+                    #if value 2e10 and was 4e10, divide by 2 (multiply by a half)
+                    #if value 4e10 and was 2e10, multiply by 2
+                self._scopeSampleRate.setValue(value)
     def ScopeScaleH(self,value=None):
         if value==None:
             return self._scopeScaleH.getValue()
         else:
             self._scopeScaleH.setValue(value)
     def cbScopeScaleH(self,value):
-        if self._scopeScaleH.getValue() != value:
+        if hasattr(self,'_scopeScaleH') and \
+           self._scopeScaleH.getValue() != value:
             self.debug("Horizontal Scale changed: clean the cyclic buffer")
             self.CyclicBuffer([])
+            self._scopeScaleH.setValue(value)
     def ScopeOffsetH(self,value=None):
         if value==None:
             return self._scopeOffsetH.getValue()
         else:
             self._scopeOffsetH.setValue(value)
     def cbScopeOffsetH(self,value):
-        if self._scopeOffsetH.getValue() != value:
+        if hasattr(self,'_scopeOffsetH') and \
+           self._scopeOffsetH.getValue() != value:
             self.debug("Horizontal Offset changed: clean the cyclic buffer")
             self.CyclicBuffer([])
+            self._scopeOffsetH.setValue(value)
     #----##RF
     def RfFrequency(self,value=None):
         if value == None: return self._rfFrequency.getValue()
@@ -313,6 +333,11 @@ class BunchAnalyzer:
     def NAcquisitions(self,value=None):
         if value==None: return self._nAcquisitions
         else: self._nAcquisitions = int(value)
+    def _cyclicBufferTracer(self,msg):
+        if self._parent:
+            self._parent._cyclicBufferTracer(msg)
+        else:
+            self.debug(msg)
     def CyclicBuffer(self,value=None):
         if value==None: return self._cyclicBuffer
         else:
@@ -340,7 +365,14 @@ class BunchAnalyzer:
     ####
 
     ######
-    #----# auxiliary methods to manage events
+    #----# auxiliary methods for logging
+    def info(self,msg):
+        try:
+            if self._parent:
+                self._parent.info_stream(msg)
+            else:
+                print("info: %s"%(msg))
+        except: print("cannot print in info stream (%s)"%msg)
     def debug(self,msg):
         try:
             if self._parent:
@@ -362,12 +394,17 @@ class BunchAnalyzer:
             else:
                 print("error: %s"%(msg))
         except: print("cannot print in error stream (%s)"%msg)
+    # done logging section
+    ######
+        
+    ######
+    #----# auxiliary methods to manage events
     def subscribe_event(self,attrName):
         self.debug("subscribe to %s"%(attrName))
         if self._scopeProxy == None:
             raise EnvironmentError("Cannot subscribe if no scope proxy set")
         self._scopeChAttrEvent = self._scopeProxy.subscribe_event(attrName,
-                                                                  PyTango.EventType.CHANGE_EVENT,
+                                                PyTango.EventType.CHANGE_EVENT,
                                                                   self)
     def unsubscribe_event(self):
         self._scopeProxy.unsubscribe_event(self._scopeChAttrEvent)
@@ -378,9 +415,11 @@ class BunchAnalyzer:
         try:
             if event != None:
                 if event.attr_value != None and event.attr_value.value != None:
-                    self.debug("PushEvent() %s: array of %d elements"%(event.attr_name,event.attr_value.value.size))
+                    self.debug("PushEvent() %s: array of %d elements"
+                               %(event.attr_name,event.attr_value.value.size))
                 else:
-                    self.debug("PushEvent() %s: value has None type"%(event.attr_name))
+                    self.debug("PushEvent() %s: value has None type"
+                               %(event.attr_name))
                     return
         except Exception,e:
             self.error("PushEvent() exception %s:"%(e))
@@ -389,8 +428,11 @@ class BunchAnalyzer:
         eventList = []
         #if the size of the elements in the buffer have changed, restart them
         if len(self._cyclicBuffer) > 0:
+            #print type(self._cyclicBuffer[0])
             if len(self._cyclicBuffer[0]) != len(event.attr_value.value):
                 self._cyclicBuffer = []
+                self._cyclicBufferTracer("buffer re-initialised. Input "\
+                                         "array length change")
         #populate the cyclicBuffer
         self._cyclicBuffer.append(event.attr_value.value)
         #state changes between STANDBY<->ON when the len(cyclicBuffer)<nAcquitions
@@ -400,26 +442,37 @@ class BunchAnalyzer:
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.STANDBY)
             if bufLen >= self.__alarm_cyclicBuf:
-                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_ALARM])
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),
+                                  PyTango.AttrQuality.ATTR_ALARM])
             else:
-                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_CHANGING])
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),
+                                  PyTango.AttrQuality.ATTR_CHANGING])
         else:
+            #FIXME: Replace the while by an if
             while len(self._cyclicBuffer) > self.NAcquisitions():
                 self._cyclicBuffer.pop(0)
+#             if len(self._cyclicBuffer) > self.NAcquisitions():
+#                 self._cyclicBufferTracer("buffer remove first %d elements"
+#                              %(len(self._cyclicBuffer)-self.NAcquisitions()))
+#                 self._cyclicBuffer = self._cyclicBuffer[-self.NAcquisitions()]
             if not self._parent.get_state() in [PyTango.DevState.ON,
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.ON)
             if len(self._cyclicBuffer) >= self.__alarm_cyclicBuf:
-                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_ALARM])
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),
+                                  PyTango.AttrQuality.ATTR_ALARM])
             else:
-                eventList.append(['nAcquisitions',len(self._cyclicBuffer),PyTango.AttrQuality.ATTR_VALID])
-        eventList.append(['CyclicBuffer',self._cyclicBuffer,PyTango.AttrQuality.ATTR_CHANGING])
+                eventList.append(['nAcquisitions',len(self._cyclicBuffer),
+                                  PyTango.AttrQuality.ATTR_VALID])
+        eventList.append(['CyclicBuffer',self._cyclicBuffer,
+                          PyTango.AttrQuality.ATTR_CHANGING])
         self._parent.fireEventsList(eventList)
         #TODO: are there any scope attribute to reread when a new waveform is received?
         #      or any that must be reread after N waveforms received
         #with the current values on the cyclic buffer, analyze it.
         #FIXME: why call delay when we are maintaining the delayTick
-        self.debug("Time delay: %d (DelayTick: %d)"%(self.delay(),self.DelayTick()))
+        self.debug("Time delay: %d (DelayTick: %d)"
+                   %(self.delay(),self.DelayTick()))
         #Usefull variables
         SampRate = self.ScopeSampleRate()
         self.debug("SampRate = %f"%(SampRate))
@@ -452,7 +505,7 @@ class BunchAnalyzer:
         try:
 #            self.debug("input to bandPassFilter = %s"%(y.tolist()))
             self._yFiltered = self.bandPassFilter(SampRate, time_win, start,
-                                                      CutOffFreq, x, y, secperbin)
+                                                  CutOffFreq, x, y, secperbin)
             #print(time_win)
             p2p = self.peakToPeak(time_win, x)
             #FIXME: better to subscribe
@@ -503,13 +556,17 @@ class BunchAnalyzer:
         '''TODO: document this method'''
         #backup pulse params
         if self._timingProxy == None:
-            self.warn("BuncherAnalyzer.delay() not callable if Event Receiver property not configured")
+            self.warn("BuncherAnalyzer.delay() not callable if Event "\
+                      "Receiver property not configured")
             return self._delayTick #FIXME: return this is meaningless
-        pulse_params = self._timingProxy.command_inout("GetPulseParams", self._timingoutput)
+        pulse_params = self._timingProxy.command_inout("GetPulseParams",
+                                                       self._timingoutput)
         pulse_params = [int(i) for i in pulse_params]
         if (pulse_params[1] != self._delayTick):
-            pulse_params = self._timingProxy.command_inout("GetPulseParams", self._timingoutput)
-            pulse_params = [int(i) for i in pulse_params] #command returns numpy array
+            pulse_params = self._timingProxy.command_inout("GetPulseParams",
+                                                           self._timingoutput)
+            #command returns numpy array
+            pulse_params = [int(i) for i in pulse_params]
             pulse_params[1] = self._delayTick
             pulse_params = [self._timingoutput] + pulse_params
             self._timingProxy.command_inout("SetPulseParams",pulse_params)
@@ -524,31 +581,39 @@ class BunchAnalyzer:
                      len(x_data),len(y_data),Secperbin))
         try:
             #FIXME: parameters would be in side the class?
-            #cutoff frequency at 0.05 Hz normalized at the Niquist frequency (1/2 samp rate)
+            #cutoff frequency at 0.05 Hz normalized at the Niquist frequency 
+            #(1/2 samp rate)
             CutOffFreqNq = Cut_Off_Freq*10**6/(Samp_Rate*0.5)
             LowFreq = 499*10**6/(Samp_Rate*0.5)
             #HighFreq = 501*10**6/(Samp_Rate*0.5)
-            filterorder = 3            # filter order = amount of additional attenuation for frequencies higher than the cutoff fr.
+            # filter order = amount of additional attenuation for frequencies 
+            # higher than the cutoff fr.
+            filterorder = 3
             #b,a = signal.filter_design.butter(filterorder,[LowFreq,HighFreq])
             b,a = signal.filter_design.butter(filterorder,[LowFreq])
 
-            y_Fil = copy(y_data)#FIXME: why this assignment if it will be reassigned before use it.
+            #FIXME: why this assignment if it will be reassigned before use it.
+            y_Fil = copy(y_data)
             try:
                 y_Fil = signal.lfilter(b,a,y_data)
             except Exception,e:
-                if self._parent and self._parent.get_state() != PyTango.DevState.ALARM:
+                if self._parent and \
+                   self._parent.get_state() != PyTango.DevState.ALARM:
                     self._parent.change_state(PyTango.DevState.ALARM)
                 self.error("Exception in signal filter: %s"%(e))
                 self._parent.addStatusMsg("Cannot apply a low pass filter.")
                 raise Exception(e)
             if Start > len(y_Fil):
-                if self._parent and self._parent.get_state() != PyTango.DevState.ALARM:
+                if self._parent and \
+                   self._parent.get_state() != PyTango.DevState.ALARM:
                     self._parent.change_state(PyTango.DevState.ALARM)
-                msg = "Starting point (%d) farther than input signal length (%d)."%(Start,len(y_Fil))
+                msg = "Starting point (%d) farther than input signal "\
+                      "length (%d)."%(Start,len(y_Fil))
                 self._parent.addStatusMsg(msg)
                 raise BufferError(msg)
             else:
-                if self._parent and self._parent.get_state() == PyTango.DevState.ALARM:
+                if self._parent and \
+                   self._parent.get_state() == PyTango.DevState.ALARM:
                     if len(self._cyclicBuffer) < self.NAcquisitions():
                         self._parent.change_state(PyTango.DevState.STANDBY)
                     else:
@@ -590,7 +655,8 @@ class BunchAnalyzer:
         thr = self._threshold
         thr = thr*0.01
         for i in range (len(p_to_p)-1):
-            if (p_to_p[i] < thr*Max): #Threshold set at 1% of the maximum peak to peak amplitude
+            #Threshold set at 1% of the maximum peak to peak amplitude
+            if (p_to_p[i] < thr*Max):
                 p_to_p[i] = 0
         if (len(p_to_p) == 0):
             print "No Beam!"#FIXME: would be this a raise exception?
@@ -619,57 +685,88 @@ class BunchAnalyzer:
         i = i + 1 
         #TODO: document the loop
         while (i < len(vec_p_to_p)-1):
-            if (i < len(vec_p_to_p)-10 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+10] == 0):
+            if (i < len(vec_p_to_p)-10 and \
+               vec_p_to_p[i-1] == 0 and \
+               vec_p_to_p[i] != 0 and \
+               vec_p_to_p[i+10] == 0):
                 while (j < 10):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-9 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+9] == 0):
+            elif (i < len(vec_p_to_p)-9 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+9] == 0):
                 while (j < 9):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-8 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+8] == 0):
+            elif (i < len(vec_p_to_p)-8 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+8] == 0):
                 while (j < 8):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-7 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+7] == 0):
+            elif (i < len(vec_p_to_p)-7 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+7] == 0):
                 while (j < 7):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-6 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+6] == 0):
+            elif (i < len(vec_p_to_p)-6 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+6] == 0):
                 while (j < 6):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-5 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+5] == 0):
+            elif (i < len(vec_p_to_p)-5 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+5] == 0):
                 while (j < 5):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-4 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+4] == 0):
+            elif (i < len(vec_p_to_p)-4 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+4] == 0):
                 while (j < 4):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-3 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+3] == 0):
+            elif (i < len(vec_p_to_p)-3 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+3] == 0):
                 while (j < 3):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-2 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+2] == 0):
+            elif (i < len(vec_p_to_p)-2 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+2] == 0):
                 while (j < 2):
                     if (vec_p_to_p[i+j] != 0):
                         sp_bun = sp_bun +1
                     j = j + 1
-            elif (i < len(vec_p_to_p)-1 and vec_p_to_p[i-1] == 0 and vec_p_to_p[i] != 0 and vec_p_to_p[i+1] == 0):
+            elif (i < len(vec_p_to_p)-1 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+1] == 0):
                 sp_bun = sp_bun +1
                 j = 1
             i = i + j + 1
             j = 0
-        if (vec_p_to_p[len(vec_p_to_p)-1] != 0 and vec_p_to_p[len(vec_p_to_p)-2] == 0 ):
+        if (vec_p_to_p[len(vec_p_to_p)-1] != 0 and \
+           vec_p_to_p[len(vec_p_to_p)-2] == 0 ):
             sp_bun = sp_bun + 1
     
         return sp_bun
@@ -725,15 +822,18 @@ def main():
     PyTango.AttributeProxy('SR02/DI/sco-01/OffsetH').write(2e-07)
     PyTango.AttributeProxy('SR02/DI/sco-01/ScaleH').write(1e-07)
     TimeDel = bunchAnalyzer.delay()
-    print "Offset: ", PyTango.AttributeProxy('SR02/DI/sco-01/OffsetH').read().value*1e9, " ns"
-    print "Scale: ", PyTango.AttributeProxy('SR02/DI/sco-01/ScaleH').read().value*1e9, " ns"
+    print "Offset: ",\
+       PyTango.AttributeProxy('SR02/DI/sco-01/OffsetH').read().value*1e9, " ns"
+    print "Scale: ",\
+        PyTango.AttributeProxy('SR02/DI/sco-01/ScaleH').read().value*1e9, " ns"
     print "Time delay: ", TimeDel
     
 
 
     # Usefull variables
     
-    SampRate = PyTango.AttributeProxy('SR02/DI/sco-01/CurrentSampleRate').read().value
+    SampRate = PyTango.AttributeProxy(\
+                               'SR02/DI/sco-01/CurrentSampleRate').read().value
     print("SampRate = %f"%(SampRate))
     secperbin = 1./SampRate
     print("secperbin = %f"%(secperbin))
@@ -743,12 +843,14 @@ def main():
     print("time_win = %d"%(time_win))
     Tot_Bucket = int(448*2*10**(-9)/secperbin)
     print("Tot_Bucket = %d"%(Tot_Bucket))
-    start = 907 #Starting point ~ 907 bin = 22.675 ns when Timing = 146351002 ns, OffsetH = 200 ns, ScaleH = 100 ns NOT WORKING IF THE BEAM IS UNSTABLE 
+    #Starting point ~ 907 bin = 22.675 ns when Timing = 146351002 ns, 
+    #OffsetH = 200 ns, ScaleH = 100 ns NOT WORKING IF THE BEAM IS UNSTABLE
+    start = 907  
     Ac_num = input('Number of acquisitions:  ')
 
     
 
-    ################################################# Loading and averaging  data ########################################
+    ######## Loading and averaging  data ######################################
     
     n = 0
     y = PyTango.AttributeProxy('sr02/di/sco-01/Channel1').read().value
@@ -766,27 +868,28 @@ def main():
     y = y/(n+1)
     x = range(len(y))
     
-    ################################################ Filtering Data #######################################################
+    ######## Filtering Data ###################################################
         
-    y_fil = bunchAnalyzer.bandPassFilter(SampRate, time_win, start, CutOffFreq, x, y, secperbin)
+    y_fil = bunchAnalyzer.bandPassFilter(SampRate, time_win, start, 
+                                         CutOffFreq, x, y, secperbin)
     plot1(x[:len(y_fil)],y[:len(y_fil)],y_fil)
     plot2(x[:len(y_fil)],y_fil)
     
-    ################################################ Analysis ##############################################################
+    ######## Analysis #########################################################
     
     bunchAnalyzer._threshold = input('Threshold (%): ')
     P_to_P = bunchAnalyzer.peakToPeak(time_win, x, y_fil)
     plot3(P_to_P/max(P_to_P))
     
-    ################################################ Bunch Counting #########################################################
+    ######## Bunch Counting ###################################################
     
     Bunch = bunchAnalyzer.bunchCount(P_to_P)
     
-    ################################################ Spurious Bunches #######################################################
+    ######## Spurious Bunches #################################################
     
     Sp_Bun = bunchAnalyzer.spuriousBunches(P_to_P)
     
-    ################################################ Output #################################################################
+    ######## Output ###########################################################
     
  
 
@@ -798,7 +901,8 @@ def main():
     
     print "Max peak to peak amplitude: ", max(P_to_P)
 
-    print "Average current: ", PyTango.AttributeProxy('SR/DI/DCCT/AverageCurrent').read().value, "mA"
+    print "Average current: ",\
+         PyTango.AttributeProxy('SR/DI/DCCT/AverageCurrent').read().value, "mA"
     
     show()
     
