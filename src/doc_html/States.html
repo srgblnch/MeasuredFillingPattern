@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title> FillingPatternFCT Tango Class States </title>
+</head>
+<body text="Black" bgcolor="White" link="Blue" vlink="Purple" alink="Red">
+<br><br><br><br>
+<Table Border=2 Cellpadding=3 CELLSPACING=0>
+	<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+	<td colspan=2> <font size=+1> <center><b> FillingPatternFCT Class States </b></font></center></td>
+	<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+		<td> <center><b> Name </b></center> </td>
+		<td> <center><b> Description </b></center> </td>
+	</tr>
+	<tr>
+		<td> ALARM </td>
+		<td> Check the status, something is not running as expected, but the calculations are still alive. </td>
+	</tr>
+	<tr>
+		<td> OFF </td>
+		<td> The device is alive, but is not reading anything, neither doing any calculation </td>
+	</tr>
+	<tr>
+		<td> ON </td>
+		<td> Device is doing the calculation normally </td>
+	</tr>
+	<tr>
+		<td> STANDBY </td>
+		<td> The calculation have start, but not with the expected #samples in the cyclic buffer  </td>
+	</tr>
+	<tr>
+		<td> FAULT </td>
+		<td> Something out of the specs, calculation stopped. Check the status. </td>
+	</tr>
+	<tr>
+		<td> INIT </td>
+		<td> Just when the device is launched until its build procedure is done </td>
+	</tr>
+</table>
+</body>
+</html>
