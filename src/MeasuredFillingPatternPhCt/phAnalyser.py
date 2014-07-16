@@ -52,8 +52,6 @@
 
 from scipy import *
 from numpy import *
-from pylab import *
-from matplotlib.pyplot import draw, figure, show
 from copy import copy, copy
 from scipy import signal
 import time
@@ -242,6 +240,8 @@ class PhCtAnalyzer(Analyser):
 # plot methods used when this is called by command line
 
 def plotPhCt(bucket,fil_pat):
+    from pylab import *
+    from matplotlib.pyplot import draw, figure, show
     f1 = figure()
     af1 = f1.add_subplot(111)
     af1.plot(bucket, fil_pat)
