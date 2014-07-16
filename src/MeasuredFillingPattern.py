@@ -29,6 +29,8 @@ import sys
 
 from MeasuredFillingPatternFCT import MeasuredFillingPatternFCT,\
                                       MeasuredFillingPatternFCTClass
+from MeasuredFillingPatternPhCt import MeasuredFillingPatternPhCt,\
+                                       MeasuredFillingPatternPhCtClass
 
 #==================================================================
 #
@@ -41,6 +43,9 @@ def main():
         py.add_class(MeasuredFillingPatternFCTClass,
                      MeasuredFillingPatternFCT,
                      'MeasuredFillingPatternFCT')
+        py.add_class(MeasuredFillingPatternPhCtClass,
+                     MeasuredFillingPatternPhCt,
+                     'MeasuredFillingPatternPhCt')
 
         U = PyTango.Util.instance()
         U.server_init()
