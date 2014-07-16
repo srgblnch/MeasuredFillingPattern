@@ -770,50 +770,7 @@ class BunchAnalyzer:
         return sp_bun
     # done original methods of the bunch analysis
     ####
-# Done FCTBunchAnalyser Class
-####
-
-class PhCtBunchAnalyzer:
-    def __init__(self):
-        pass
-    
-    ####
-    # original methods of the bunch analysis
-    def Fil_Pat_Calc(self,Time_Window, x_data, y_data, Secperbin):
-        fil_pat = [] 
-        k = 0 
-        Start = 0
-        i=0
-        #Analysis
-        print "Data analysis"
-        while (Start < len(y_data)):
-            k = 0
-            time_win_ar = [] #Array representing the time of a bucket
-            if (Start + Time_Window < len(y_data)):
-                for k in range(0, Time_Window): 
-                    time_win_ar.append(y_data[Start+k]) #create the bucket
-                fil_pat.append(sum(time_win_ar)) #considering all the photons in the bucket
-            Start = Start + Time_Window #switch to the following bucket
-        #Impose a threshold (Not sure if needed)
-        i = 0
-        Max = max(fil_pat)
-        thr = 1 #input('Threshold (%): ')
-        thr = thr*0.01
-        #generate the array with the bucket number
-        bucket = []
-        for i in range (0, len(fil_pat)):
-            bucket.append(i)
-            if (fil_pat[i] < thr*Max): #Threshold set at 1% of the maximum peak to peak amplitude
-                fil_pat[i] = 0
-        #To be tested whith real beam
-        #    fil_pat = fil_pat/sum(fil_pat)
-        #    cur = taurus.Attribute('sr/di/dcct/AverageCurrent').read().value
-        #    fil_pat = fil_pat/sum(fil_pat)*cur
-        plotPhCt(bucket,fil_pat)
-        return fil_pat
-    # done original methods of the bunch analysis
-    ####
-# Done PhCtBunchAnalyser Class
+# Done BunchAnalyser Class
 ####
 
 #imports only used from the command line call
@@ -851,14 +808,6 @@ def plot3(p_to_p):
     ylabel('Normalized peak to peak amplitude')
     plt.title("Peak to Peak")
     savefig('scope_peakTOpeakTimeWin.png') 
-
-def plotPhCt(bucket,fil_pat):
-    f1 = figure()
-    af1 = f1.add_subplot(111)
-    af1.plot(bucket, fil_pat)
-    xlabel('Bucket Number')
-    ylabel('Current (mA)')
-    plt.title("Filling Pattern")
 
 # end plot methods
 ####
