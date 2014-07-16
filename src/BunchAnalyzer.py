@@ -146,7 +146,7 @@ class Attribute:
         except:
             self.warn("This is not a write value")
 
-class BunchAnalyzer:
+class FCTBunchAnalyzer:
     def __init__(self,parent=None,
                   timingDevName=None,timingoutput=0,delayTick=18281216,
                   scopeDevName=None,cyclicBuffer=[],
