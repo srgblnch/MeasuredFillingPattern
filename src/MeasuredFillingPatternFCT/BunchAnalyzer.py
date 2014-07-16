@@ -57,8 +57,10 @@
 ###############################################################################
 
 META = u"""
-    $URL: https://svn.code.sf.net/p/tango-ds/code/Servers/Calculation/MeasuredFillingPattern/ $
+    $URL: https://svn.code.sf.net/p/tango-ds/code/Servers/Calculation/FillingPatternFCT/src/BunchAnalyzer.py $
     $LastChangedBy: sergiblanch $
+    $Date: 2012-12-12 11:33:48 +0100 (Wed, 12 Dec 2012)$
+    $Rev: 5901 $
     License: GPL3+
     Author: Laura Torino
 """.encode('latin1')
@@ -903,6 +905,6 @@ def main():
          PyTango.AttributeProxy('SR/DI/DCCT/AverageCurrent').read().value, "mA"
     
     show()
-
+    
 if __name__ == "__main__":
     main()
