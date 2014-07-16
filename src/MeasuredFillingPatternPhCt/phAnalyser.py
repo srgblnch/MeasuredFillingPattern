@@ -156,6 +156,12 @@ class PhCtAnalyzer(Analyser):
 
     ####
     # original methods of the ph analysis
+    def mov_av(self,data):
+        data_fil = []
+        for i in range(len(data)-1):
+            data_fil.append((data[i]+data[i+1])/2)
+        data_fil.append(0)
+        return array(data_fil)
     def Fil_Pat_Calc(self,y_data):
         '''Calculation of the filling status of the 448 buckets'''
         self.debug("Fil_Pat_Calc()")
@@ -188,14 +194,13 @@ class PhCtAnalyzer(Analyser):
         thr = thr*0.01
         #generate the array with the bucket number
         bucket = []
-        for i in range (0, len(fil_pat)):
-            bucket.append(i)
-            if (fil_pat[i] < thr*Max): #Threshold set at 1% of the maximum peak to peak amplitude
-                fil_pat[i] = 0
-        #To be tested whith real beam
-        #    fil_pat = fil_pat/sum(fil_pat)
-        #    cur = taurus.Attribute('sr/di/dcct/AverageCurrent').read().value
-        #    fil_pat = fil_pat/sum(fil_pat)*cur
+        fil_pat_thr = array(fil_pat>Max*thr)
+        fil_pat = fil_pat*fil_pat_thr.astype(int)
+        fil_pat = self.mov_av(fil_pat)
+        cur = taurus.Attribute('sr/di/dcct/AverageCurrent').read().value
+        fil_pat = array(fil_pat)
+        fil_pat.astype(float)
+        fil_pat = fil_pat*cur/sum(fil_pat)
         return (bucket,fil_pat)
     # done original methods of the ph analysis
     ####
