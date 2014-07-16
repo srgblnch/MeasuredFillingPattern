@@ -8,7 +8,7 @@
 ##
 ## File :        MeasuredFillingPatternFCT.py
 ## 
-## Project :     Measure the Filling Pattern from the FCT signal taken from an 
+## Project :     Measure the Filling Pattern from the FCT signal taken from an
 ##               scope and 2 auxiliar devices more (timing and RF oscillator).
 ##
 ## $Author :      sblanch$
@@ -37,14 +37,13 @@ import sys
 #----- PROTECTED REGION ID(MeasuredFillingPatternFCT.additionnal_import) ENABLED START -----#
 import time
 import threading
-#from BunchAnalyzer import BunchAnalyzer
-from analysis import FCT
+from BunchAnalyzer import BunchAnalyzer
 import traceback
 
 from types import StringType
 
 META = u"""
-    $URL: https://svn.code.sf.net/p/tango-ds/code/Servers/Calculation/MeasuredFillingPattern/src/MeasuredFillingPatternFCT.py $
+    $URL: https://svn.code.sf.net/p/tango-ds/code/Servers/Calculation/MeasuredFillingPatternFCT $
     $LastChangedBy: sergiblanch $
     License: GPL3+
     Author: Sergi Blanch
@@ -151,12 +150,16 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
         try:
             time.sleep(1)
             self.debug_stream("Build BunchAnalyser instance")
-            self._bunchAnalyzer = analisys.FCT(scopeDevName=self.scoDev,
-                                               waveformAttrName=FCTAttribute,
-                                               timingDevName=self.erDev,
-                                               RfGeneratorDevName=RfGeneratorDev,
-                                               dcctDevName="SR/DI/DCCT",
-                                               parent=self)
+            self._bunchAnalyzer = BunchAnalyzer(parent=self,
+                                                timingDevName=self.erDev,
+                                                delayTick=self.attr_TimingTrigger_read,
+                                                scopeDevName=self.scoDev,
+                                                cyclicBuffer=self.attr_cyclicBuffer_read,
+                                                threshold=self.attr_Threshold_write,
+                                                nAcquisitions=self.attr_nAcquisitions_write,
+                                                startingPoint=self.attr_StartingPoint_write,
+                                                max_cyclicBuf=MAX_SIZE_CYCLIC_BUFFER,
+                                                alarm_cyclicBuf=ALARM_SIZE_CYCLIC_BUFFER)
             self.debug_stream("Build BunchAnalyser made")
             self.attr_TimingTrigger_read = self._bunchAnalyzer.DelayTick()
         except:
