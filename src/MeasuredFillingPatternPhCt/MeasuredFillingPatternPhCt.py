@@ -160,7 +160,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                         try:
                             # Subscribe to events of the scope channel
                             #self._bunchAnalyzer.CyclicBuffer([])
-                            self._bunchAnalyzer.subscribe_event("Histogram")
+                            self._bunchAnalyzer.subscribe_event(self.PhCtAttr)
                         except Exception,e:
                             self.change_state(PyTango.DevState.FAULT)
                             self.addStatusMsg("Cannot subscribe to the PhCt",isImportant=True)
@@ -390,6 +390,10 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
             [PyTango.DevBoolean,
             "Configure if the device must start the calculation by default when it is launched",
             [True]],
+        'PhCtAttr':
+            [PyTango.DevString,
+            "Photon Counter histogram property name",
+            [] ],
         }
 
 
