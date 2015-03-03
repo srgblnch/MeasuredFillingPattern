@@ -1,4 +1,25 @@
 #!/usr/bin/env python
+# -*- coding:utf-8 -*- 
+
+##############################################################################
+## license : GPLv3+
+##============================================================================
+##
+## File :        widgets/TaurusDevCombo.py
+## 
+## Project :     Widget to select one device from the given device server name
+##
+## $Author :      sblanch$
+##
+## $Revision :    $
+##
+## $Date :        $
+##
+## $HeadUrl :     $
+##============================================================================
+##
+##        (c) - Controls Software Section - Alba synchrotron (cells)
+##############################################################################
 
 #?__docformat__ = 'restructuredtext'
 
@@ -43,14 +64,15 @@ class TaurusDevCombo(TaurusWidget):
                     self._deviceNames.append(devName)
         return self._deviceNames
     
-    def selection(self):
-        devName = self._ui.selectorCombo.currentText()
+    def selection(self,devName):
+        if type(devName) == int:
+            devName = self._ui.selectorCombo.currentText()
         self.debug("selected %s"%(devName))
-        self.modelChosen.emit()
         self._selectedDevice = devName
+        self.modelChosen.emit()
     
     def givenSelectedDevice(self):
-        self.debug("Requested which device was selected")
+        #self.debug("Requested which device was selected")
         return self._selectedDevice
 
 def main():
