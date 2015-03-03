@@ -49,31 +49,42 @@ class TaurusDevCombo(TaurusWidget):
     def setModel(self,model):
         TaurusWidget.setModel(self, model)
         self.getDeviceListByDeviceServerName(model)
-        self._ui.selectorCombo.addItems(self._deviceNames)
+        self._ui.selectorCombo.addItems(self._deviceNames.keys())
 
     def getDeviceListByDeviceServerName(self,deviceServerName):
         db = taurus.Database()
-        instances = db.getServerNameInstances(deviceServerName)
+        foundInstances = db.getServerNameInstances(deviceServerName)
         self.debug("by %s found %d instances: %s."
-                   %(deviceServerName,len(instances),
-                     ','.join("%s"%instance.name() for instance in instances)))
-        self._deviceNames = []
-        for instance in instances:
-            for devName in instance.getDeviceNames():
+                   %(deviceServerName,len(foundInstances),
+                     ','.join("%s"%instance.name() \
+                              for instance in foundInstances)))
+        self._deviceNames = {}
+        for instance in foundInstances:
+            for i,devName in enumerate(instance.getDeviceNames()):
                 if not devName.startswith('dserver'):
-                    self._deviceNames.append(devName)
-        return self._deviceNames
+                    self._deviceNames[devName] = instance.getClassNames()[i]
+        return self._deviceNames.keys()
     
     def selection(self,devName):
         if type(devName) == int:
             devName = self._ui.selectorCombo.currentText()
+        if not devName in self._deviceNames.keys():
+            self.warning("Selected device is not in the list of devices found!")
         self.debug("selected %s"%(devName))
         self._selectedDevice = devName
         self.modelChosen.emit()
     
-    def givenSelectedDevice(self):
+    def getSelectedDeviceName(self):
         #self.debug("Requested which device was selected")
         return self._selectedDevice
+    
+    def getSelectedDeviceClass(self):
+        try:
+            return self._deviceNames[self._selectedDevice]
+        except:
+            self.error("Uou! As the selected device is not in the device "\
+                       "instances found, its class is unknown")
+            return "unknown"
 
 def main():
     app = Qt.QApplication(sys.argv)
