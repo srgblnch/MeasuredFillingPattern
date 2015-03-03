@@ -168,8 +168,8 @@ class PhCtAnalyzer(Analyser):
         # Usefull variables
         self._secperbin = taurus.Attribute(self._Resolution).read().value *1e-12
         #Convert the resolution (ps) in second
-        self._time_win = int(self._BucketLength/self._secperbin)
-        self._Tot_Bucket = int(448*self._BucketLength/self._secperbin)
+        self._time_win = round(self._BucketLength/self._secperbin)
+        self._Tot_Bucket = round(448*self._BucketLength/self._secperbin)
         #prepare arrays
         y_data = y_data[0:self._Tot_Bucket+1]
         x_data = range(len(y_data))
@@ -196,7 +196,7 @@ class PhCtAnalyzer(Analyser):
         bucket = []
         fil_pat_thr = array(fil_pat>Max*thr)
         fil_pat = fil_pat*fil_pat_thr.astype(int)
-        fil_pat = self.mov_av(fil_pat)
+        #fil_pat = self.mov_av(fil_pat)
         cur = taurus.Attribute('sr/di/dcct/AverageCurrent').read().value
         fil_pat = array(fil_pat)
         fil_pat.astype(float)
