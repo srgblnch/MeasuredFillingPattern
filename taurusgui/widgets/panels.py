@@ -45,11 +45,19 @@ class AttributePanel(TaurusForm):
 
 from taurus.qt.qtgui.plot import TaurusPlot
 
-#TODO: plots of the FCT and the PhCt (with event streaming mode)
-
-class HistogramPlot(TaurusPlot):
+class StreamingPlot(TaurusPlot):
     def __init__(self, parent=None, designMode=False):
         TaurusPlot.__init__(self, parent, designMode)
+
+    #TODO: overload the event management to avoid pile-up.
+
+#    def replot(self):
+#        self.debug("<<<Replot>>>")
+#        TaurusPlot.replot()
+
+class BunchIntensityPlot(StreamingPlot):
+    def __init__(self, parent=None, designMode=False):
+        StreamingPlot.__init__(self, parent, designMode)
 
     #TODO: events in streaming mode
 
@@ -63,7 +71,11 @@ class HistogramPlot(TaurusPlot):
         return ""
 
     def setModel(self,model):
-        self.debug("Histogram model change")
+        self.debug("BunchIntensity model change")
         self._devModel = model
         TaurusPlot.setModel(self, model+"/bunchIntensity")
 
+#TODO: plots of the FCT and the PhCt (with event streaming mode)
+
+class InputSignalPlot(StreamingPlot):
+    pass
