@@ -25,27 +25,40 @@
 import sys
 from taurus.core.util import argparse
 from taurus.qt.qtgui.application import TaurusApplication
-from taurus.qt.qtgui.container import TaurusMainWindow
-from widgets import TaurusDevCombo,HistogramPlot
+from taurus.qt.qtgui.taurusgui import TaurusGui
+from widgets import *
 from taurus.external.qt import Qt
+import taurus
 
 DEVICESERVERNAME = 'MeasuredFillingPattern'
 
-class MainWindow(TaurusMainWindow):
+DEVNAMEPROP = 'deviceNameProp'
+ATTRNAMEPROP = 'attrNameProp'
+InputSignals = {'MeasuredFillingPatternFCT': {DEVNAMEPROP: 'scoDev',
+                                              ATTRNAMEPROP:'FCTAttribute'},
+                'MeasuredFillingPatternPhCt':{DEVNAMEPROP: 'PhCtDev',
+                                              ATTRNAMEPROP:'PhCtAttr'}}
+
+class MainWindow(TaurusGui):
     def __init__(self, parent=None):
-        TaurusMainWindow.__init__(self)
+        TaurusGui.__init__(self)
         self.initComponents()
         self.splashScreen().finish(self)
 
     def initComponents(self):
         self._bunchIntensityComponent()
+        self._inputSignalComponent()
         self._selectorComponent()
 
     def _bunchIntensityComponent(self):
-        self._histogramDW = Qt.QDockWidget("Histogram",self)
-        self._histogram = HistogramPlot()
-        self._histogramDW.setWidget(self._histogram)
-        self.addDockWidget(Qt.Qt.BottomDockWidgetArea, self._histogramDW)
+        self._bunchIntensity = BunchIntensityPlot()
+        self.createPanel(self._bunchIntensity,name="Bunch Intensity",
+                         permanent=True)
+
+    def _inputSignalComponent(self):
+        self._inputSignal = InputSignalPlot()
+        self.createPanel(self._inputSignal,name="Input signal",
+                         permanent=True)
 
     def _selectorComponent(self):
         #create a TaurusDevCombo
@@ -62,10 +75,36 @@ class MainWindow(TaurusMainWindow):
         self._selector.modelChosen.connect(self._modelChange)
 
     def _modelChange(self):
-        self.debug("Model has changed from %s to %s"
-                   %(self.getModel(),self._selector.givenSelectedDevice()))
-        self.setModel(self._selector.givenSelectedDevice())
-        self._histogram.setModel(self._selector.givenSelectedDevice())
+        newModel = self._selector.getSelectedDeviceName()
+        if newModel != self.getModel():
+            self.debug("Model has changed from %s to %s"
+                       %(self.getModel(),newModel))
+            self.setModel(newModel)
+            self._bunchIntensitySetModel()
+            self._inputSignalSetModel()
+
+    def _bunchIntensitySetModel(self):
+        self._bunchIntensity.setModel(self.getModel())
+
+    def _inputSignalSetModel(self):
+        inputSignalModel = self._getInputSignal()
+        self.debug("input signal shall be %s"%(inputSignalModel))
+        self._inputSignal.setModel(inputSignalModel)
+        #TODO: tune the curve appearance properties
+    
+    def _getInputSignal(self):
+        '''Given the device model, based on its device class, find the 
+           properties that describes from where the signal is provided.
+        '''
+        modelClass = self._selector.getSelectedDeviceClass()
+        modelHWObj = taurus.Device(self.getModel()).getHWObj()
+        if not modelClass in InputSignals.keys():
+            return ""#FIXME: uou this should never happen!
+        propDev = InputSignals[modelClass][DEVNAMEPROP]
+        iDevName = modelHWObj.get_property(propDev)[propDev][0]
+        propAttr = InputSignals[modelClass][ATTRNAMEPROP]
+        iAttrName = modelHWObj.get_property(propAttr)[propAttr][0]
+        return iDevName+"/"+iAttrName
 
 def main():
     parser = argparse.get_taurus_parser()
