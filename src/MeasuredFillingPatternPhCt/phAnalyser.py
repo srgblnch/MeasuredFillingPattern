@@ -40,15 +40,14 @@
 ##               Spain
 ##############################################################################
 
-###########################################################################################################################################
-#  /data/Diagnostics/Laura//PhotonCountingTopUp/phAnalyzer                                                                                #
-#                                                                                                       #
-#  This program analyses data coming from a Photon Counting device server                                                                 #
-#  - Data are uploaded                                                                                           #
-#  - Read the resolution                                                                                                 #
-#  - Calculate the filling status of the different buckets                                                                                #
-###########################################################################################################################################
-
+###############################################################################
+#  /data/Diagnostics/Laura/PhotonCountingTopUp/phAnalyzer                     #
+#                                                                             #
+#  This program analyses data coming from a Photon Counting device server     #
+#  - Data are uploaded                                                        #
+#  - Read the resolution                                                      #
+#  - Calculate the filling status of the different buckets                    #
+###############################################################################
 
 from scipy import *
 from numpy import *
@@ -166,7 +165,7 @@ class PhCtAnalyzer(Analyser):
         '''Calculation of the filling status of the 448 buckets'''
         self.debug("Fil_Pat_Calc()")
         # Usefull variables
-        self._secperbin = taurus.Attribute(self._Resolution).read().value *1e-12
+        self._secperbin = taurus.Attribute(self._Resolution).read().value*1e-12
         #Convert the resolution (ps) in second
         self._time_win = round(self._BucketLength/self._secperbin)
         self._Tot_Bucket = round(448*self._BucketLength/self._secperbin)
@@ -185,7 +184,8 @@ class PhCtAnalyzer(Analyser):
             if (Start + self._time_win < len(y_data)):
                 for k in range(0, self._time_win): 
                     time_win_ar.append(y_data[Start+k]) #create the bucket
-                fil_pat.append(sum(time_win_ar)) #considering all the photons in the bucket
+                fil_pat.append(sum(time_win_ar)) #considering all the photons 
+                                                 #in the bucket
             Start = Start + self._time_win #switch to the following bucket
         #Impose a threshold (Not sure if needed)
         i = 0
@@ -258,13 +258,13 @@ def plotPhCt(bucket,fil_pat):
 ####
 
 def main():
-    ################################################ Analysis ##############################################################
+    ################################# Analysis ################################
     FP = PhCtAnalyzer('bl34/di/phct-01')
     y = taurus.Attribute('bl34/di/phct-01/Histogram').read().value
     bucket,fil_pat = FP.Fil_Pat_Calc(y) #Final output
     plotPhCt(bucket,fil_pat)
     
-    ################################################ Output #################################################################
+    ################################# Output ##################################
     show()
     
 if __name__ == "__main__":
