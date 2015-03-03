@@ -26,8 +26,8 @@ import sys
 from taurus.core.util import argparse
 from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.container import TaurusMainWindow
-from widgets import TaurusDevCombo
-from taurus.external.qt import Qt#,QtGui,QtCore
+from widgets import TaurusDevCombo,HistogramPlot
+from taurus.external.qt import Qt
 
 DEVICESERVERNAME = 'MeasuredFillingPattern'
 
@@ -36,7 +36,18 @@ class MainWindow(TaurusMainWindow):
         TaurusMainWindow.__init__(self)
         self.initComponents()
         self.splashScreen().finish(self)
+
     def initComponents(self):
+        self._bunchIntensityComponent()
+        self._selectorComponent()
+
+    def _bunchIntensityComponent(self):
+        self._histogramDW = Qt.QDockWidget("Histogram",self)
+        self._histogram = HistogramPlot()
+        self._histogramDW.setWidget(self._histogram)
+        self.addDockWidget(Qt.Qt.BottomDockWidgetArea, self._histogramDW)
+
+    def _selectorComponent(self):
         #create a TaurusDevCombo
         self._selector = TaurusDevCombo(self)
         #populate the combo
@@ -49,10 +60,12 @@ class MainWindow(TaurusMainWindow):
         self.selectorToolBar.addWidget(self._selector)
         #subscribe model change
         self._selector.modelChosen.connect(self._modelChange)
+
     def _modelChange(self):
         self.debug("Model has changed from %s to %s"
                    %(self.getModel(),self._selector.givenSelectedDevice()))
         self.setModel(self._selector.givenSelectedDevice())
+        self._histogram.setModel(self._selector.givenSelectedDevice())
 
 def main():
     parser = argparse.get_taurus_parser()
