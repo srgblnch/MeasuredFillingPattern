@@ -10,6 +10,22 @@
 ## 
 ## Project :     Measured Filling Pattern from a Photon Counter
 ##
+## This file is part of Tango device class.
+## 
+## Tango is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Tango is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+## 
+## You should have received a copy of the GNU General Public License
+## along with Tango.  If not, see <http://www.gnu.org/licenses/>.
+## 
+##
 ## $Author :      sblanch$
 ##
 ## $Revision :    $
@@ -51,21 +67,18 @@ META = u"""
 
 #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.additionnal_import
 
-##############################################################################
 ## Device States Description
-##
 ## ALARM : Check the status, something is not running as expected, but the calculations are still alive.
 ## OFF : The device is alive, but is not reading anything, neither doing any calculation
 ## ON : Device is doing the calculation normally
 ## STANDBY : The calculation have start, but not with the expected #samples in the cyclic buffer 
 ## FAULT : Something out of the specs, calculation stopped. Check the status.
 ## INIT : Just when the device is launched until its build procedure is done
-##############################################################################
 
 class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
 
-#--------- Add you global variables here --------------------------
-#----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.global_variables) ENABLED START -----#
+    #--------- Add you global variables here --------------------------
+    #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.global_variables) ENABLED START -----#
     def cleanAllImportantLogs(self):
         #@todo: clean the important logs when they loose importance.
         self.debug_stream("In %s::cleanAllImportantLogs()"%self.get_name())
@@ -165,6 +178,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                             self.change_state(PyTango.DevState.FAULT)
                             self.addStatusMsg("Cannot subscribe to the PhCt",isImportant=True)
                             self.debug_stream("Cannot subscribe to the PhCt due to: %s"%(e))
+                            traceback.print_exc()
                 if self._stopCmd.isSet():
                     self._stopCmd.clear()
                     if not self.get_state() in [PyTango.DevState.OFF]:
@@ -206,33 +220,29 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                 self.error_stream("In %s::fireEventsList() Exception with attribute %s"%(self.get_name(),attrEvent[0]))
                 print e
 #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.global_variables
-#------------------------------------------------------------------
-#    Device constructor
-#------------------------------------------------------------------
+
     def __init__(self,cl, name):
         PyTango.Device_4Impl.__init__(self,cl,name)
-        self.debug_stream("In " + self.get_name() + ".__init__()")
+        self.debug_stream("In __init__()")
         MeasuredFillingPatternPhCt.init_device(self)
-
-#------------------------------------------------------------------
-#    Device destructor
-#------------------------------------------------------------------
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.__init__) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.__init__
+        
     def delete_device(self):
-        self.debug_stream("In " + self.get_name() + ".delete_device()")
+        self.debug_stream("In delete_device()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.delete_device) ENABLED START -----#
         self.deleteThread()
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.delete_device
 
-#------------------------------------------------------------------
-#    Device initialization
-#------------------------------------------------------------------
     def init_device(self):
-        self.debug_stream("In " + self.get_name() + ".init_device()")
+        self.debug_stream("In init_device()")
         self.get_device_properties(self.get_device_class())
+        self.attr_threshold_read = 0
         self.attr_BunchIntensity_read = [0.0]
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.init_device) ENABLED START -----#
         self._important_logs = []
-        self._phCtAnalyzer = None
+        self._bunchAnalyzer = None
         #tools for the Exec() cmd
         DS_MODULE = __import__(self.__class__.__module__)
         kM = dir(DS_MODULE)
@@ -255,53 +265,64 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
             self.addStatusMsg("Analyzer thread cannot be created")
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.init_device
 
-#------------------------------------------------------------------
-#    Always excuted hook method
-#------------------------------------------------------------------
     def always_executed_hook(self):
-        self.debug_stream("In " + self.get_name() + ".always_excuted_hook()")
+        self.debug_stream("In always_excuted_hook()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.always_executed_hook) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.always_executed_hook
 
-#==================================================================
-#
-#    MeasuredFillingPatternPhCt read/write attribute methods
-#
-#==================================================================
-
-#------------------------------------------------------------------
-#    Read BunchIntensity attribute
-#------------------------------------------------------------------
+    #-----------------------------------------------------------------------------
+    #    MeasuredFillingPatternPhCt read/write attribute methods
+    #-----------------------------------------------------------------------------
+    
+    def read_threshold(self, attr):
+        self.debug_stream("In read_threshold()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.threshold_read) ENABLED START -----#
+        try:
+            self.attr_threshold_read = self._bunchAnalyzer.threshold
+        except:
+            self.warn_stream("In read_BunchIntensity() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_threshold_read)
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.threshold_read
+        
+    def write_threshold(self, attr):
+        self.debug_stream("In write_threshold()")
+        data=attr.get_write_value()
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.threshold_write) ENABLED START -----#
+        self.attr_threshold_read = int(data)
+        try:
+            self._bunchAnalyzer.threshold = self.attr_threshold_read
+        except:
+            self.warn_stream("In write_threshold() cannot set in BunchAnalyzer()")
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.threshold_write
+        
     def read_BunchIntensity(self, attr):
-        self.debug_stream("In " + self.get_name() + ".read_BunchIntensity()")
+        self.debug_stream("In read_BunchIntensity()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.BunchIntensity_read) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.BunchIntensity_read
+        try:
+            self.attr_BunchIntensity_read = self._bunchAnalyzer.BunchIntensity
+        except:
+            self.warn_stream("In read_BunchIntensity() cannot get from BunchAnalyzer()")
         attr.set_value(self.attr_BunchIntensity_read)
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.BunchIntensity_read
         
-
-
-
-#------------------------------------------------------------------
-#    Read Attribute Hardware
-#------------------------------------------------------------------
+    
+    
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.initialize_dynamic_attributes) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.initialize_dynamic_attributes
+            
     def read_attr_hardware(self, data):
-        self.debug_stream("In " + self.get_name() + ".read_attr_hardware()")
+        self.debug_stream("In read_attr_hardware()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.read_attr_hardware) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.read_attr_hardware
 
 
-#==================================================================
-#
-#    MeasuredFillingPatternPhCt command methods
-#
-#==================================================================
-
-#------------------------------------------------------------------
-#    Start command:
-#------------------------------------------------------------------
+    #-----------------------------------------------------------------------------
+    #    MeasuredFillingPatternPhCt command methods
+    #-----------------------------------------------------------------------------
+    
     def Start(self):
         """ 
         
@@ -309,14 +330,11 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         :type: PyTango.DevVoid
         :return: 
         :rtype: PyTango.DevVoid """
-        self.debug_stream("In " + self.get_name() +  ".Start()")
+        self.debug_stream("In Start()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.Start) ENABLED START -----#
         self._startCmd.set()
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Start
         
-#------------------------------------------------------------------
-#    Stop command:
-#------------------------------------------------------------------
     def Stop(self):
         """ 
         
@@ -324,14 +342,11 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         :type: PyTango.DevVoid
         :return: 
         :rtype: PyTango.DevVoid """
-        self.debug_stream("In " + self.get_name() +  ".Stop()")
+        self.debug_stream("In Stop()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.Stop) ENABLED START -----#
         self._stopCmd.set()
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Stop
         
-#------------------------------------------------------------------
-#    Exec command:
-#------------------------------------------------------------------
     def Exec(self, argin):
         """ 
         
@@ -339,7 +354,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         :type: PyTango.DevString
         :return: result
         :rtype: PyTango.DevString """
-        self.debug_stream("In " + self.get_name() +  ".Exec()")
+        self.debug_stream("In Exec()")
         argout = ''
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.Exec) ENABLED START -----#
         try:
@@ -368,12 +383,35 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         return argout
         
 
-#==================================================================
-#
-#    MeasuredFillingPatternPhCtClass class definition
-#
-#==================================================================
+    #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.programmer_methods) ENABLED START -----#
+    def initialize_dynamic_attributes(self):
+        pass
+    #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.programmer_methods
+
 class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
+    #--------- Add you global class variables here --------------------------
+    #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.global_class_variables) ENABLED START -----#
+    
+    #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.global_class_variables
+
+    def dyn_attr(self, dev_list):
+        """Invoked to create dynamic attributes for the given devices.
+        Default implementation calls
+        :meth:`MeasuredFillingPatternPhCt.initialize_dynamic_attributes` for each device
+    
+        :param dev_list: list of devices
+        :type dev_list: :class:`PyTango.DeviceImpl`"""
+    
+        for dev in dev_list:
+            try:
+                dev.initialize_dynamic_attributes()
+            except:
+                import traceback
+                dev.warn_stream("Failed to initialize dynamic attributes")
+                dev.debug_stream("Details: " + traceback.format_exc())
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.dyn_attr) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.dyn_attr
 
     #    Class Properties
     class_property_list = {
@@ -416,6 +454,13 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
 
     #    Attribute definitions
     attr_list = {
+        'threshold':
+            [[PyTango.DevUShort,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE],
+            {
+                'Memorized':"true"
+            } ],
         'BunchIntensity':
             [[PyTango.DevDouble,
             PyTango.SPECTRUM,
@@ -423,23 +468,13 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
         }
 
 
-#------------------------------------------------------------------
-#    MeasuredFillingPatternPhCtClass Constructor
-#------------------------------------------------------------------
-    def __init__(self, name):
-        PyTango.DeviceClass.__init__(self, name)
-        self.set_type(name);
-        print "In MeasuredFillingPatternPhCt Class  constructor"
-
-#==================================================================
-#
-#    MeasuredFillingPatternPhCt class main method
-#
-#==================================================================
 def main():
     try:
         py = PyTango.Util(sys.argv)
         py.add_class(MeasuredFillingPatternPhCtClass,MeasuredFillingPatternPhCt,'MeasuredFillingPatternPhCt')
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.add_classes) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.add_classes
 
         U = PyTango.Util.instance()
         U.server_init()

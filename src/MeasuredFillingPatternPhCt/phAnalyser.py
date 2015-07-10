@@ -109,7 +109,7 @@ class Analyser:
 class PhCtAnalyzer(Analyser):
     def __init__(self,PhCtDevName,
                  histogram="histogram",resolution="resolution",
-                 BucketLenght=2*1e-9,
+                 BucketLenght=2*1e-9,threshold=1,
                  parent=None):
         Analyser.__init__(self, parent)
         self._PhCtDevName = PhCtDevName
@@ -117,8 +117,18 @@ class PhCtAnalyzer(Analyser):
         self._Histogram = PhCtDevName+"/"+histogram
         self._Resolution = PhCtDevName+"/"+resolution
         self._BucketLength = BucketLenght
+        self._threshold = threshold
         #for the logging
         self._parent = parent
+    
+    @property
+    def threshold(self):
+        self.debug("Threshold = %d"%(self._threshold))
+        return self._threshold
+    
+    @threshold.setter
+    def threshold(self,value):
+        self._threshold = value
     
     #a callback method for the scope channel attribute
     def push_event(self,event):
@@ -127,13 +137,14 @@ class PhCtAnalyzer(Analyser):
                 if event.device.dev_name() == self._PhCtDevName:
                     if event.attr_value != None and \
                        event.attr_value.value != None:
-                        if event.attr_value.quality == \
-                                                PyTango.AttrQuality.ATTR_VALID:
+                        if event.attr_value.quality in \
+                                [PyTango.AttrQuality.ATTR_VALID,
+                                 PyTango.AttrQuality.ATTR_CHANGING]:
                             self.info("Received valid data! (%d)"
                                       %(len(event.attr_value.value)))
                             bucket,fil_pat = self.Fil_Pat_Calc(\
                                                         event.attr_value.value)
-                            self.emit_results(fil_pat)
+                            self.emit_results(fil_pat,event.attr_value.quality)
                         else:
                             self.debug("Data is changing")
                     else:
@@ -146,11 +157,10 @@ class PhCtAnalyzer(Analyser):
                 self.warn("Received a null event")
         except Exception,e:
             self.error("cannot process event due to: %s"%e)
-    def emit_results(self,fillingPattern):
+    def emit_results(self,fillingPattern,quality=PyTango.AttrQuality.ATTR_VALID):
         if self._parent:
             self._parent.fireEventsList([['BunchIntensity',
-                                          fillingPattern,
-                                          PyTango.AttrQuality.ATTR_VALID]])
+                                          fillingPattern,quality]])
             self._parent.attr_BunchIntensity_read = fillingPattern
 
     ####
@@ -163,7 +173,7 @@ class PhCtAnalyzer(Analyser):
         return array(data_fil)
     def Fil_Pat_Calc(self,y_data):
         '''Calculation of the filling status of the 448 buckets'''
-        self.debug("Fil_Pat_Calc()")
+        #self.debug("Fil_Pat_Calc()")
         # Usefull variables
         self._secperbin = taurus.Attribute(self._Resolution).read().value*1e-12
         #Convert the resolution (ps) in second
@@ -177,7 +187,7 @@ class PhCtAnalyzer(Analyser):
         Start = 0
         i=0
         #Analysis
-        self.debug("Data analysis")
+        #self.debug("Data analysis")
         while (Start < len(y_data)):
             k = 0
             time_win_ar = [] #Array representing the time of a bucket
@@ -190,8 +200,8 @@ class PhCtAnalyzer(Analyser):
         #Impose a threshold (Not sure if needed)
         i = 0
         Max = max(fil_pat)
-        thr = 1 #input('Threshold (%): ')
-        thr = thr*0.01
+        #thr = 1 #input('Threshold (%): ')
+        thr = self.threshold*0.01
         #generate the array with the bucket number
         bucket = []
         fil_pat_thr = array(fil_pat>Max*thr)
