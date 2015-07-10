@@ -85,7 +85,10 @@ class Attribute:
             self.warn_stream = warn_stream
             self.error_stream = error_stream
             self._devProxy = PyTango.DeviceProxy(devName)
-            self._attrValue = self._devProxy[attrName].value
+            try:
+                self._attrValue = self._devProxy[attrName].value
+            except:
+                self._attrValue = None
             self._attrEvent = None
             self._callback = callback
             self.subscribe_event()
@@ -137,9 +140,16 @@ class Attribute:
         except Exception,e:
             self.error("%s::PushEvent() callback exception: %s"
                        %(self._name,e))
-    def getValue(self):
+    @property
+    def value(self):
+        if self._attrValue == None:
+            try:
+                self._attrValue = self._devProxy[self._attrName].value
+            except Exception,e:
+                self.error("Cannot read %s value: %s"%(self._attrName,e))
         return self._attrValue
-    def setValue(self,value):
+    @value.setter
+    def value(self,value):
         self._attrValue = value
         try:
             self._devProxy[self._attrName] = value
@@ -236,131 +246,183 @@ class BunchAnalyzer:
         self._resultingFrequency = 0
         self.debug("BunchAnalyzer created with parameters: "\
                    "nAcquisitions=%d, startingPoint=%d, threshold=%6.3f"
-                   %(self.NAcquisitions(),self.StartingPoint(),self.Threshold()))
+                   %(self.NAcquisitions,self.StartingPoint,self.Threshold))
     ######
     #----# Auxiliary setters and getters to modify the behaviour from the device server
     #----##Timming
-    def TimingDevName(self,value=None):
-        '''getter/setter in one'''
-        if value == None:
-            return self._timingDevName
-        else:
-            self._timingDevName = name
-            self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
-    def TimingDevice(self,value=None):
-        if value==None:  return self._timingProxy
-        else:  raise ValueError("Use by TimingDevName()")
-    def TimingOutput(self,value=None):
-        if value == None:  return self._timingoutput
-        else: self._timingoutput = value
-    def DelayTick(self,value=None):
-        if value == None: return self._delayTick
-        else:  self._delayTick = value
+
+    @property
+    def TimingDevName(self):
+        return self._timingDevName
+
+    @TimingDevName.setter
+    def TimingDevName(self,value):
+        self._timingDevName = value
+        self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
+
+    @property
+    def TimingDevice(self):
+        return self._timingProxy
+
+    @property
+    def TimingOutput(self):
+        return self._timingoutput
+
+    @TimingOutput.setter
+    def TimingOutput(self):
+        self._timingoutput = value
+
+    @property
+    def DelayTick(self):
+        return self._delayTick
+
+    @DelayTick.setter
+    def DelayTick(self):
+        self._delayTick = value
+
     #----##Scope
-    def ScopeDevName(self,value=None):
-        if value == None:
-            return self._scopeDevName
-        else:
-            self._scopeDevName = name
-            self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
-    def ScopeDevice(self,value=None):
-        if value == None:
-            return self._scopeProxy
-        else:
-            raise ValueError("Use by ScopeDevName()")
-    def ScopeSampleRate(self,value=None):
-        if value==None:
-            return self._scopeSampleRate.getValue()
-        else:
-            raise AttributeError("read only attribute")
+    @property
+    def ScopeDevName(self):
+        return self._scopeDevName
+
+    @ScopeDevName.setter
+    def ScopeDevName(self,value):
+        self._scopeDevName = name
+        self._scopeProxy = PyTango.DeviceProxy(self._scopeDevName)
+
+    @property
+    def ScopeDevice(self):
+        return self._scopeProxy
+
+    @property
+    def ScopeSampleRate(self):
+        return self._scopeSampleRate.value
+
     def cbScopeSampleRate(self,value):
         #The buffer cannot contain different length of the waveforms
         if hasattr(self,'_scopeSampleRate'):
             self.debug("Sample rate event: ¿%6.3f == %6.3f?"
-                       %(self._scopeSampleRate.getValue(),value))
-            if self._scopeSampleRate.getValue() != value:
+                       %(self._scopeSampleRate.value,value))
+            if self._scopeSampleRate.value != value:
                 self.debug("Sample rate changed: clean the cyclic buffer")
-                self.CyclicBuffer([])
-                if self.StartingPoint() != 0:
-                    oldStartingPoint = self.StartingPoint()
+                self.CyclicBuffer = []
+                if self.StartingPoint != 0:
+                    oldStartingPoint = self.StartingPoint
                     self.debug("Sample rate changed: update the starting "\
                                "point (was:%d)"%oldStartingPoint)
-                    relation = (value/self._scopeSampleRate.getValue())
+                    relation = (value/self._scopeSampleRate.value)
                     self.debug("Sample rate changed: relation %6.3f"%relation)
                     newStartingPoint = oldStartingPoint * relation
                     self.debug("Sample rate changed: update the starting "\
                                "point (set:%d)"%newStartingPoint)
-                    self.StartingPoint(newStartingPoint)
+                    self.StartingPoint = newStartingPoint
                     #this increases or reduces the starting point 
                     #maintaining its ratio
                     #if value 2e10 and was 4e10, divide by 2 (multiply by a half)
                     #if value 4e10 and was 2e10, multiply by 2
-                self._scopeSampleRate.setValue(value)
-    def ScopeScaleH(self,value=None):
-        if value==None:
-            return self._scopeScaleH.getValue()
-        else:
-            self._scopeScaleH.setValue(value)
+                self._scopeSampleRate.value = value
+
+    @property
+    def ScopeScaleH(self):
+        return self._scopeScaleH.value
+    
+    @ScopeScaleH.setter
+    def ScopeScaleH(self):
+        self._scopeScaleH.value = value
+
     def cbScopeScaleH(self,value):
         if hasattr(self,'_scopeScaleH') and \
-           self._scopeScaleH.getValue() != value:
+           self._scopeScaleH.value != value:
             self.debug("Horizontal Scale changed: clean the cyclic buffer")
-            self.CyclicBuffer([])
-            self._scopeScaleH.setValue(value)
-    def ScopeOffsetH(self,value=None):
-        if value==None:
-            return self._scopeOffsetH.getValue()
-        else:
-            self._scopeOffsetH.setValue(value)
+            self.CyclicBuffer = []
+            self._scopeScaleH.value = value
+
+    @property
+    def ScopeOffsetH(self):
+        return self._scopeOffsetH.value
+
+    @ScopeOffsetH.setter
+    def ScopeOffsetH(self,value):
+        self._scopeOffsetH.value = value
+
     def cbScopeOffsetH(self,value):
         if hasattr(self,'_scopeOffsetH') and \
-           self._scopeOffsetH.getValue() != value:
+           self._scopeOffsetH.value != value:
             self.debug("Horizontal Offset changed: clean the cyclic buffer")
-            self.CyclicBuffer([])
-            self._scopeOffsetH.setValue(value)
+            self.CyclicBuffer = []
+            self._scopeOffsetH.value = value
+
     #----##RF
-    def RfFrequency(self,value=None):
-        if value == None: return self._rfFrequency.getValue()
-        else: self._rfFrequency.setValue(value)
+    @property
+    def RfFrequency(self):
+        return self._rfFrequency.value
+
+    @RfFrequency.setter
+    def RfFrequency(self,value):
+        self._rfFrequency.value = value
+
     #----##internals
+    @property
     def Threshold(self,value=None):
-        if value==None: return self._threshold
+        return self._threshold
+
+    @Threshold.setter
+    def Threshold(self,value):
+        if value >= 0 and value <= 100:
+            self._threshold = value
         else:
-            if value >= 0 and value <= 100:
-                self._threshold = value
-            else:
-                raise AttributeError("Threshold out of range")
-    def NAcquisitions(self,value=None):
-        if value==None: return self._nAcquisitions
-        else: self._nAcquisitions = int(value)
+            raise AttributeError("Threshold out of range")
+
+    @property
+    def NAcquisitions(self):
+        return self._nAcquisitions
+
+    @NAcquisitions.setter
+    def NAcquisitions(self,value):
+        self._nAcquisitions = int(value)
+
     def _cyclicBufferTracer(self,msg):
         if self._parent:
             self._parent._cyclicBufferTracer(msg)
         else:
             self.debug(msg)
-    def CyclicBuffer(self,value=None):
-        if value==None: return self._cyclicBuffer
+
+    @property
+    def CyclicBuffer(self):
+        return self._cyclicBuffer
+
+    @CyclicBuffer.setter
+    def CyclicBuffer(self,value):
+        if type(value) == list:
+            self.debug("Clean cyclic buffer")
+            self._cyclicBuffer = value
         else:
-            if type(value) == list:
-                self.debug("Clean cyclic buffer")
-                self._cyclicBuffer = value
-            else:
-                raise AttributeError("Unrecognized type for buffer")
-    def StartingPoint(self,value=None):
-        if value==None: return self._startingPoint
-        else: self._startingPoint = int(value)
-    def FilledBunches(self,value=None):
-        if value==None: return self._filledBunches
-        else: raise AttributeError("read only attribute")
-    def SpuriousBunches(self,value=None):
-        if value==None: return self._spuriousBunches
-        else: raise AttributeError("read only attribute")
-    def BunchIntensity(self,value=None):
-        if value==None: return self._bunchIntensity
-        else: raise AttributeError("read only attribute")
-    def ResultingFrequency(self,value=None):
-        if value==None: return self._resultingFrequency
-        else: raise AttributeError("read only attribute")
+            raise AttributeError("Unrecognized type for buffer")
+
+    @property
+    def StartingPoint(self):
+        return self._startingPoint
+
+    @StartingPoint.setter
+    def StartingPoint(self,value):
+        self._startingPoint = int(value)
+
+    @property
+    def FilledBunches(self):
+        return self._filledBunches
+
+    @property
+    def SpuriousBunches(self):
+        return self._spuriousBunches
+
+    @property
+    def BunchIntensity(self):
+        return self._bunchIntensity
+
+    @property
+    def ResultingFrequency(self):
+        return self._resultingFrequency
+
     # done auxiliary setters and getters to modify the behaviour from the device server
     ####
 
@@ -373,6 +435,7 @@ class BunchAnalyzer:
             else:
                 print("info: %s"%(msg))
         except: print("cannot print in info stream (%s)"%msg)
+
     def debug(self,msg):
         try:
             if self._parent:
@@ -380,6 +443,7 @@ class BunchAnalyzer:
             else:
                 print("debug: %s"%(msg))
         except: print("cannot print in debug stream (%s)"%msg)
+
     def warn(self,msg):
         try:
             if self._parent:
@@ -387,6 +451,7 @@ class BunchAnalyzer:
             else:
                 print("warn:  %s"%(msg))
         except: print("cannot print in warn stream (%s)"%msg)
+
     def error(self,msg):
         try:
             if self._parent:
@@ -394,9 +459,10 @@ class BunchAnalyzer:
             else:
                 print("error: %s"%(msg))
         except: print("cannot print in error stream (%s)"%msg)
+
     # done logging section
     ######
-        
+
     ######
     #----# auxiliary methods to manage events
     def subscribe_event(self,attrName):
@@ -406,12 +472,13 @@ class BunchAnalyzer:
         self._scopeChAttrEvent = self._scopeProxy.subscribe_event(attrName,
                                                 PyTango.EventType.CHANGE_EVENT,
                                                                   self)
+
     def unsubscribe_event(self):
         self._scopeProxy.unsubscribe_event(self._scopeChAttrEvent)
         self._parent.change_state(PyTango.DevState.OFF)
 
-    #a callback method for the scope channel attribute
     def push_event(self,event):
+        #a callback method for the scope channel attribute
         try:
             if event != None:
                 if event.attr_value != None and event.attr_value.value != None:
@@ -437,7 +504,7 @@ class BunchAnalyzer:
         self._cyclicBuffer.append(event.attr_value.value)
         #state changes between STANDBY<->ON when the len(cyclicBuffer)<nAcquitions
         bufLen = len(self._cyclicBuffer)
-        if bufLen < self.NAcquisitions():
+        if bufLen < self.NAcquisitions:
             if not self._parent.get_state() in [PyTango.DevState.STANDBY,
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.STANDBY)
@@ -449,12 +516,12 @@ class BunchAnalyzer:
                                   PyTango.AttrQuality.ATTR_CHANGING])
         else:
             #FIXME: Replace the while by an if
-            while len(self._cyclicBuffer) > self.NAcquisitions():
+            while len(self._cyclicBuffer) > self.NAcquisitions:
                 self._cyclicBuffer.pop(0)
-#             if len(self._cyclicBuffer) > self.NAcquisitions():
+#             if len(self._cyclicBuffer) > self.NAcquisitions:
 #                 self._cyclicBufferTracer("buffer remove first %d elements"
-#                              %(len(self._cyclicBuffer)-self.NAcquisitions()))
-#                 self._cyclicBuffer = self._cyclicBuffer[-self.NAcquisitions()]
+#                              %(len(self._cyclicBuffer)-self.NAcquisitions))
+#                 self._cyclicBuffer = self._cyclicBuffer[-self.NAcquisitions]
             if not self._parent.get_state() in [PyTango.DevState.ON,
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.ON)
@@ -472,14 +539,14 @@ class BunchAnalyzer:
         #with the current values on the cyclic buffer, analyze it.
         #FIXME: why call delay when we are maintaining the delayTick
         self.debug("Time delay: %d (DelayTick: %d)"
-                   %(self.delay(),self.DelayTick()))
+                   %(self.delay(),self.DelayTick))
         #Usefull variables
-        SampRate = self.ScopeSampleRate()
+        SampRate = self.ScopeSampleRate
         self.debug("SampRate = %f"%(SampRate))
         secperbin = 1./SampRate
         self.debug("secperbin = %12.12f"%(secperbin))
         CutOffFreq = 500#FIXME: would be this variable?
-        freq = self._rfFrequency.getValue()
+        freq = self._rfFrequency.value
         self.debug("RF freq = %f"%(freq))
         time_win = int((1/freq)/secperbin)
         self.debug("time_win = %d"%(time_win))
@@ -489,7 +556,7 @@ class BunchAnalyzer:
         #    Timing = 146351002 ns,
         #    OffsetH = 200 ns,
         #    ScaleH = 100 ns
-        start = self.StartingPoint()
+        start = self.StartingPoint
         #NOT WORKING IF THE BEAM IS UNSTABLE
         #if len(self._cyclicBuffer)==0: return
         self.debug("cyclic buffer size: %d"%(len(self._cyclicBuffer)))
@@ -509,7 +576,7 @@ class BunchAnalyzer:
             #print(time_win)
             p2p = self.peakToPeak(time_win, x)
             #FIXME: better to subscribe
-            current = self._currentAttr.getValue()
+            current = self._currentAttr.value
             #FIXME: use the new attr 
             nBunches = self._filledBunches-self._spuriousBunches
             self._bunchIntensity = ((p2p/sum(p2p))*current)#/(nBunches)
@@ -530,7 +597,7 @@ class BunchAnalyzer:
             self._t0.append(t0)
             self._tf.append(tf)
             self.debug("current calculation in %f"%(tf-t0))
-            while len(self._tf) > self.NAcquisitions():
+            while len(self._tf) > self.NAcquisitions:
                 self._t0.pop(0)
                 self._tf.pop(0)
             #use the time to calculate the output frequency
@@ -540,13 +607,14 @@ class BunchAnalyzer:
         except Exception,e:
             self.error("Exception during calculation: %s"%(e))
             #FIXME: should be set the status to fault?
-            
+
     def calculateResultingFrequency(self):
         samples = len(self._tf)
         lapses = []
         for i in range(samples-1):
             lapses.append(self._tf[i+1]-self._tf[i])
         self._resultingFrequency = 1/average(lapses)
+
     # done auxiliary methods to manage events
     ####
 
@@ -614,7 +682,7 @@ class BunchAnalyzer:
             else:
                 if self._parent and \
                    self._parent.get_state() == PyTango.DevState.ALARM:
-                    if len(self._cyclicBuffer) < self.NAcquisitions():
+                    if len(self._cyclicBuffer) < self.NAcquisitions:
                         self._parent.change_state(PyTango.DevState.STANDBY)
                     else:
                         self._parent.change_state(PyTango.DevState.ON)
@@ -770,10 +838,14 @@ class BunchAnalyzer:
             sp_bun = sp_bun + 1
     
         return sp_bun
+
+
     # done original methods of the bunch analysis
     ####
+
 # Done BunchAnalyser Class
 ####
+
 
 #imports only used from the command line call
 try:#The try is necessary by the Tango device
@@ -794,6 +866,7 @@ def plot1(x_data,y_data,y_Fil):
     #af1.plot(array(x_data)*2.5e-2, y_Fil, 'r')
     af1.plot(array(x_data), y_Fil, 'r')
     savefig('scope_LowPassFil.png')
+
 def plot2(x_data,y_Fil):
     f2 = figure()
     af2 = f2.add_subplot(111)
@@ -801,6 +874,7 @@ def plot2(x_data,y_Fil):
     af2.plot(array(x_data), y_Fil, 'r')
     plt.title("Filtered Data")
     savefig('scope_FilSig.png')
+
 def plot3(p_to_p):
     #Potting the peak to peak signal in function of the bunch number
     f3 = figure()
@@ -828,8 +902,6 @@ def main():
         PyTango.AttributeProxy('SR02/DI/sco-01/ScaleH').read().value*1e9, " ns"
     print "Time delay: ", TimeDel
     
-
-
     # Usefull variables
     
     SampRate = PyTango.AttributeProxy(\
@@ -848,7 +920,6 @@ def main():
     start = 907  
     Ac_num = input('Number of acquisitions:  ')
 
-    
 
     ######## Loading and averaging  data ######################################
     
@@ -867,31 +938,30 @@ def main():
     
     y = y/(n+1)
     x = range(len(y))
-    
+
     ######## Filtering Data ###################################################
         
     y_fil = bunchAnalyzer.bandPassFilter(SampRate, time_win, start, 
                                          CutOffFreq, x, y, secperbin)
     plot1(x[:len(y_fil)],y[:len(y_fil)],y_fil)
     plot2(x[:len(y_fil)],y_fil)
-    
+
     ######## Analysis #########################################################
-    
+
     bunchAnalyzer._threshold = input('Threshold (%): ')
     P_to_P = bunchAnalyzer.peakToPeak(time_win, x, y_fil)
     plot3(P_to_P/max(P_to_P))
-    
+
     ######## Bunch Counting ###################################################
-    
+
     Bunch = bunchAnalyzer.bunchCount(P_to_P)
-    
+
     ######## Spurious Bunches #################################################
-    
+
     Sp_Bun = bunchAnalyzer.spuriousBunches(P_to_P)
-    
+
     ######## Output ###########################################################
-    
- 
+
 
     print "Total number of bucket: ", len(P_to_P)+1
     
@@ -903,8 +973,8 @@ def main():
 
     print "Average current: ",\
          PyTango.AttributeProxy('SR/DI/DCCT/AverageCurrent').read().value, "mA"
-    
+
     show()
-    
+
 if __name__ == "__main__":
     main()
