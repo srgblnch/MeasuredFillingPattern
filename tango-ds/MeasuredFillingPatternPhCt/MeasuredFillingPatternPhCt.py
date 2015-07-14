@@ -97,7 +97,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
             self._important_logs.append(newMsg)
 
     def change_state(self,newstate):
-        self.debug_stream("In %s::change_state(%s)"%(self.get_name(),str(newstate)))
+        self.info_stream("In %s::change_state(%s)"
+                         %(self.get_name(),str(newstate)))
         self.set_state(newstate)
         self.push_change_event('State',newstate)
         self.cleanAllImportantLogs()
@@ -108,11 +109,15 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         if not self.get_state() in [PyTango.DevState.OFF]:
             return False
         if hasattr(self,'_thread') and self._thread and self._thread.isAlive():
-            self.debug_stream("In %s::createThread(): Trying to start threading when is already started."%self.get_name())
+            self.debug_stream("In %s::createThread(): Trying to start "\
+                              "threading when is already started."
+                              %self.get_name())
             self.change_state(PyTango.DevState.FAULT)
-            self.addStatusMsg("Try to start the calculation thread when is already running.",isImportant=True)
+            self.addStatusMsg("Try to start the calculation thread when is "\
+                              "already running.",isImportant=True)
             return False
-        self.debug_stream("In %s::createThread(): Start calculation threading."%self.get_name())
+        msg = "Start calculation threading."
+        self.debug_stream("In %s::createThread(): %s"%(self.get_name(),msg))
         try:
             self._joinerEvent = threading.Event()#to communicate between threads
             self._joinerEvent.clear()
@@ -125,31 +130,41 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
             self._thread = threading.Thread(target=self.analyzerThread)
             self._thread.setDaemon(True)
             self._thread.start()
-            self.debug_stream("In %s::createThread(): Thread created."%self.get_name())
+            self.debug_stream("In %s::createThread(): Thread created."
+                              %self.get_name())
         except Exception,e:
-            self.warn_stream("In %s::createThread(): Exception creating thread: %s."%(self.get_name(),e))
+            self.warn_stream("In %s::createThread(): Exception creating "\
+                             "thread: %s."%(self.get_name(),e))
             self.change_state(PyTango.DevState.FAULT)
-            self.addStatusMsg("Exception creating calculation thread.",isImportant=True)
+            self.addStatusMsg("Exception creating calculation thread.",
+                              isImportant=True)
             return False
         return True
     def deleteThread(self):
-        self.debug_stream("In %s::deleteThread(): Stoping acquisition threading."%self.get_name())
+        self.debug_stream("In %s::deleteThread(): Stoping acquisition "\
+                          "threading."%self.get_name())
         if hasattr(self,'_joinerEvent'):
-            self.debug_stream("In %s::deleteThread(): sending join event."%self.get_name())
+            self.debug_stream("In %s::deleteThread(): sending join event."
+                              %self.get_name())
             self._joinerEvent.set()
         if hasattr(self,'_thread'):
-            self.debug_stream("In %s::deleteThread(): Thread joining."%self.get_name())
+            self.debug_stream("In %s::deleteThread(): Thread joining."
+                              %self.get_name())
             self._thread.join(1)
             if self._thread.isAlive():
-                self.debug_stream("In %s::deleteThread(): Thread joined."%self.get_name())
+                self.debug_stream("In %s::deleteThread(): Thread joined."
+                                  %self.get_name())
     
     def analyzerThread(self):
-        self.debug_stream("In %s::analyzerThread(): Thread started."%self.get_name())
+        self.debug_stream("In %s::analyzerThread(): Thread started."
+                          %self.get_name())
         if not hasattr(self,'_joinerEvent'):
-            raise Exception("Not possible to start the loop because it have not end condition")
-#        self.change_state(PyTango.DevState.STANDBY)#FIXME: change the state when it starts to work
-#        self.cleanAllImportantLogs()
-#        self.addStatusMsg("Starting buffer population")
+            raise Exception("Not possible to start the loop because it have "\
+                            "not end condition")
+        self.change_state(PyTango.DevState.STANDBY)
+        #FIXME: change the state when it starts to work
+        self.cleanAllImportantLogs()
+        self.addStatusMsg("Starting buffer population")
         #Build the analyzer object
         try:
             time.sleep(1)
@@ -168,16 +183,20 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
             try:
                 if self._startCmd.isSet():
                     self._startCmd.clear()
-                    if not self.get_state() in [PyTango.DevState.STANDBY,
-                                                PyTango.DevState.ON]:
+                    if not self.get_state() in [PyTango.DevState.ON]:
                         try:
                             # Subscribe to events of the scope channel
                             #self._bunchAnalyzer.CyclicBuffer([])
                             self._bunchAnalyzer.subscribe_event(self.PhCtAttr)
+                            self.change_state(PyTango.DevState.ON)
+                            self.addStatusMsg("Subscribed to %s"
+                                              %(self.PhCtAttr))
                         except Exception,e:
                             self.change_state(PyTango.DevState.FAULT)
-                            self.addStatusMsg("Cannot subscribe to the PhCt",isImportant=True)
-                            self.debug_stream("Cannot subscribe to the PhCt due to: %s"%(e))
+                            self.addStatusMsg("Cannot subscribe to the PhCt",
+                                              isImportant=True)
+                            self.debug_stream("Cannot subscribe to the PhCt "\
+                                              "due to: %s"%(e))
                             traceback.print_exc()
                 if self._stopCmd.isSet():
                     self._stopCmd.clear()
@@ -186,21 +205,31 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                             pass
                             self._bunchAnalyzer.unsubscribe_event()
                             eventList = []
-                            #eventList.append(['nAcquisitions',0])#,PyTango.AttrQuality.ATTR_INVALID])
-                            #eventList.append(['CyclicBuffer',[[0]]])#,PyTango.AttrQuality.ATTR_INVALID])
-                            eventList.append(['BunchIntensity',[0]])#,PyTango.AttrQuality.ATTR_INVALID])
-                            #eventList.append(['FilledBunches',0])#,PyTango.AttrQuality.ATTR_INVALID])
-                            #eventList.append(['SpuriousBunches',0])#,PyTango.AttrQuality.ATTR_INVALID])
-                            #eventList.append(['nBunches',0])#,PyTango.AttrQuality.ATTR_INVALID])
-                            #eventList.append(['resultingFrequency',0])#,PyTango.AttrQuality.ATTR_INVALID])
+                            #eventList.append(['nAcquisitions',0])
+                                #,PyTango.AttrQuality.ATTR_INVALID])
+                            #eventList.append(['CyclicBuffer',[[0]]])
+                                #,PyTango.AttrQuality.ATTR_INVALID])
+                            eventList.append(['BunchIntensity',[0]])
+                                #,PyTango.AttrQuality.ATTR_INVALID])
+                            #eventList.append(['FilledBunches',0])
+                                #,PyTango.AttrQuality.ATTR_INVALID])
+                            #eventList.append(['SpuriousBunches',0])
+                                #,PyTango.AttrQuality.ATTR_INVALID])
+                            #eventList.append(['nBunches',0])
+                                #,PyTango.AttrQuality.ATTR_INVALID])
+                            #eventList.append(['resultingFrequency',0])
+                                #,PyTango.AttrQuality.ATTR_INVALID])
                             self.fireEventsList(eventList)
                         except Exception,e:
                             self.change_state(PyTango.DevState.FAULT)
-                            self.addStatusMsg("Cannot unsubscribe to the PhCt",isImportant=True)
-                            self.debug_stream("Cannot unsubscribe to the PhCt due to: %s"%(e))
+                            self.addStatusMsg("Cannot unsubscribe to the PhCt",
+                                              isImportant=True)
+                            self.debug_stream("Cannot unsubscribe to the PhCt"\
+                                              " due to: %s"%(e))
                 time.sleep(1)
             except Exception,e:
-                self.error_stream("In %s::analyzerThread(): Exception: %s"%(self.get_name(),e))
+                self.error_stream("In %s::analyzerThread(): Exception: %s"
+                                  %(self.get_name(),e))
             
             
     def fireEventsList(self,eventsAttrList):
@@ -209,15 +238,22 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         timestamp = time.time()
         for attrEvent in eventsAttrList:
             try:
-                self.debug_stream("In %s::fireEventsList() attribute: %s"%(self.get_name(),attrEvent[0]))
-                if attrEvent[0] in ['CyclicBuffer'] and not self.attr_emitCyclicBuffer_read:
-                    self.debug_stream("In %s::fireEventsList() attribute: %s avoided to emit the event duo to flag."%(self.get_name(),attrEvent[0]))
+                self.debug_stream("In %s::fireEventsList() attribute: %s"
+                                  %(self.get_name(),attrEvent[0]))
+                if attrEvent[0] in ['CyclicBuffer'] and \
+                not self.attr_emitCyclicBuffer_read:
+                    self.debug_stream("In %s::fireEventsList() attribute: "\
+                                      "%s avoided to emit the event duo to "\
+                                      "flag."%(self.get_name(),attrEvent[0]))
                 elif len(attrEvent) == 3:#specifies quality
-                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,attrEvent[2])
+                    self.push_change_event(attrEvent[0],attrEvent[1],
+                                           timestamp,attrEvent[2])
                 else:
-                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,PyTango.AttrQuality.ATTR_VALID)
+                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,
+                                           PyTango.AttrQuality.ATTR_VALID)
             except Exception,e:
-                self.error_stream("In %s::fireEventsList() Exception with attribute %s"%(self.get_name(),attrEvent[0]))
+                self.error_stream("In %s::fireEventsList() Exception with "\
+                                 "attribute %s"%(self.get_name(),attrEvent[0]))
                 print e
 #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.global_variables
 
@@ -281,7 +317,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         try:
             self.attr_threshold_read = self._bunchAnalyzer.threshold
         except:
-            self.warn_stream("In read_BunchIntensity() cannot get from BunchAnalyzer()")
+            self.warn_stream("In read_BunchIntensity() cannot get from "\
+                             "BunchAnalyzer()")
         attr.set_value(self.attr_threshold_read)
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.threshold_read
         
@@ -293,7 +330,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         try:
             self._bunchAnalyzer.threshold = self.attr_threshold_read
         except:
-            self.warn_stream("In write_threshold() cannot set in BunchAnalyzer()")
+            self.warn_stream("In write_threshold() cannot set in "\
+                             "BunchAnalyzer()")
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.threshold_write
         
     def read_BunchIntensity(self, attr):
@@ -302,7 +340,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         try:
             self.attr_BunchIntensity_read = self._bunchAnalyzer.BunchIntensity
         except:
-            self.warn_stream("In read_BunchIntensity() cannot get from BunchAnalyzer()")
+            self.warn_stream("In read_BunchIntensity() cannot get from "\
+                             "BunchAnalyzer()")
         attr.set_value(self.attr_BunchIntensity_read)
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.BunchIntensity_read
         

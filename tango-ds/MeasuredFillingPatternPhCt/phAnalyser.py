@@ -105,6 +105,32 @@ class Analyser:
         self._parent.change_state(PyTango.DevState.OFF)
     #---- auxiliary methods to manage events
     ######
+    
+    ######
+    #----# auxiliary methods to manage states
+    def isStandby(self):
+        if self._parent:
+            return self._parent.get_state() == PyTango.DevState.STANDBY
+        return False
+    
+    def isRunning(self):
+        if self._parent:
+            return self._parent.get_state() == PyTango.DevState.RUNNING
+        return False
+
+    def setRunning(self):
+        if self._parent:
+            self._parent.change_state(PyTango.DevState.RUNNING)
+            self._parent.addStatusMsg("Receiving events")
+
+    def setFault(self,msg):
+        if self._parent:
+            self._parent.change_state(PyTango.DevState.FAULT)
+            self._parent.addStatusMsg(msg)
+
+    #---- auxiliary methods to manage states
+    ######
+
 
 class PhCtAnalyzer(Analyser):
     def __init__(self,PhCtDevName,
@@ -129,7 +155,7 @@ class PhCtAnalyzer(Analyser):
     @threshold.setter
     def threshold(self,value):
         self._threshold = value
-    
+
     #a callback method for the scope channel attribute
     def push_event(self,event):
         try:
@@ -140,13 +166,18 @@ class PhCtAnalyzer(Analyser):
                         if event.attr_value.quality in \
                                 [PyTango.AttrQuality.ATTR_VALID,
                                  PyTango.AttrQuality.ATTR_CHANGING]:
-                            self.info("Received valid data! (%d)"
-                                      %(len(event.attr_value.value)))
+                            if self.isStandby():
+                                return
+                            if not self.isRunning():
+                                self.setRunning()
+                            self.debug("Received valid data! (%d,%s)"
+                                       %(len(event.attr_value.value),
+                                             event.attr_value.quality))
                             bucket,fil_pat = self.Fil_Pat_Calc(\
                                                         event.attr_value.value)
                             self.emit_results(fil_pat,event.attr_value.quality)
                         else:
-                            self.debug("Data is changing")
+                            self.debug("Data is %s"%(event.attr_value.quality))
                     else:
                         self.debug("PushEvent() %s: value has None type"
                                    %(event.attr_name))
@@ -156,7 +187,10 @@ class PhCtAnalyzer(Analyser):
             else:
                 self.warn("Received a null event")
         except Exception,e:
-            self.error("cannot process event due to: %s"%e)
+            msg = "cannot process event due to: %s"%e
+            self.error(msg)
+            self.setFault(msg)
+
     def emit_results(self,fillingPattern,quality=PyTango.AttrQuality.ATTR_VALID):
         if self._parent:
             self._parent.fireEventsList([['BunchIntensity',
@@ -192,7 +226,7 @@ class PhCtAnalyzer(Analyser):
             k = 0
             time_win_ar = [] #Array representing the time of a bucket
             if (Start + self._time_win < len(y_data)):
-                for k in range(0, self._time_win): 
+                for k in range(0, int(self._time_win)): 
                     time_win_ar.append(y_data[Start+k]) #create the bucket
                 fil_pat.append(sum(time_win_ar)) #considering all the photons 
                                                  #in the bucket
