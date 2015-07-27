@@ -168,12 +168,17 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         #Build the analyzer object
         try:
             time.sleep(1)
-            self.debug_stream("Build PhCtAnalyzer instance")
-            self._bunchAnalyzer = PhCtAnalyzer(self.PhCtDev,parent=self)
-            self.debug_stream("Build PhCtAnalyzer made")
+            self.debug_stream("Build PhCtAnalyzer instance (%s)"%self.PhCtDev)
+            self._bunchAnalyzer = PhCtAnalyzer(str(self.PhCtDev),
+                                               dcctDev=self.dcctDev,
+                                               dcctAttr=self.dcctAttr,
+                                               parent=self)
+            self.debug_stream("Build PhCtAnalyzer made (%s)"
+                              %(self._bunchAnalyzer.PhCtDevName))
         except:
             self.change_state(PyTango.DevState.FAULT)
             self.addStatusMsg("Cannot build the analyzer",isImportant=True)
+            traceback.print_exc()
             return
         while not self._joinerEvent.isSet():
             #TODO: passive wait until no new data is available
@@ -187,7 +192,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                         try:
                             # Subscribe to events of the scope channel
                             #self._bunchAnalyzer.CyclicBuffer([])
-                            self._bunchAnalyzer.subscribe_event(self.PhCtAttr)
+                            self._bunchAnalyzer.subscribeHistogram()
                             self.change_state(PyTango.DevState.ON)
                             self.addStatusMsg("Subscribed to %s"
                                               %(self.PhCtAttr))
@@ -203,7 +208,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                     if not self.get_state() in [PyTango.DevState.OFF]:
                         try:
                             pass
-                            self._bunchAnalyzer.unsubscribe_event()
+                            self._bunchAnalyzer.unsubscribeHistogram()
                             eventList = []
                             #eventList.append(['nAcquisitions',0])
                                 #,PyTango.AttrQuality.ATTR_INVALID])
@@ -219,6 +224,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                                 #,PyTango.AttrQuality.ATTR_INVALID])
                             #eventList.append(['resultingFrequency',0])
                                 #,PyTango.AttrQuality.ATTR_INVALID])
+                            eventList.append(['InputSignal',[0]])
                             self.fireEventsList(eventList)
                         except Exception,e:
                             self.change_state(PyTango.DevState.FAULT)
@@ -274,9 +280,12 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
     def init_device(self):
         self.debug_stream("In init_device()")
         self.get_device_properties(self.get_device_class())
-        self.attr_threshold_read = 0
+        self.attr_Threshold_read = 0
+        self.attr_Threshold_expert_read = 0
         self.attr_BunchIntensity_read = [0.0]
+        self.attr_InputSignal_read = [0.0]
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.init_device) ENABLED START -----#
+        self.attr_threshold_write = 0
         self._important_logs = []
         self._bunchAnalyzer = None
         #tools for the Exec() cmd
@@ -291,6 +300,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.set_change_event('State', True, False)
         self.set_change_event('Status', True, False)
         self.set_change_event('BunchIntensity', True, False)
+        self.set_change_event('InputSignal', True, False)
         #prepare the analyzer thread
         self.change_state(PyTango.DevState.OFF)
         if self.createThread():
@@ -311,28 +321,43 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
     #    MeasuredFillingPatternPhCt read/write attribute methods
     #-----------------------------------------------------------------------------
     
-    def read_threshold(self, attr):
-        self.debug_stream("In read_threshold()")
-        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.threshold_read) ENABLED START -----#
+    def read_Threshold(self, attr):
+        self.debug_stream("In read_Threshold()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.Threshold_read) ENABLED START -----#
         try:
             self.attr_threshold_read = self._bunchAnalyzer.threshold
         except:
             self.warn_stream("In read_BunchIntensity() cannot get from "\
                              "BunchAnalyzer()")
-        attr.set_value(self.attr_threshold_read)
-        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.threshold_read
+        attr.set_value(self.attr_Threshold_read)
         
-    def write_threshold(self, attr):
-        self.debug_stream("In write_threshold()")
-        data=attr.get_write_value()
-        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.threshold_write) ENABLED START -----#
-        self.attr_threshold_read = int(data)
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Threshold_read
+        
+    def read_Threshold_expert(self, attr):
+        self.debug_stream("In read_Threshold_expert()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.Threshold_expert_read) ENABLED START -----#
         try:
-            self._bunchAnalyzer.threshold = self.attr_threshold_read
+            self.attr_threshold_expert_read = self._bunchAnalyzer.threshold
+        except:
+            self.warn_stream("In read_BunchIntensity() cannot get from "\
+                             "BunchAnalyzer()")
+        attr.set_value(self.attr_threshold_expert_read)
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Threshold_expert_read
+        
+    def write_Threshold_expert(self, attr):
+        self.debug_stream("In write_Threshold_expert()")
+        data=attr.get_write_value()
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.Threshold_expert_write) ENABLED START -----#
+        self.attr_threshold_expert_read = int(data)
+        self.attr_threshold_write = self.attr_threshold_expert_read
+        try:
+            self._bunchAnalyzer.threshold = self.attr_threshold_write
+            self.attr_threshold_read = self._bunchAnalyzer.threshold
         except:
             self.warn_stream("In write_threshold() cannot set in "\
                              "BunchAnalyzer()")
-        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.threshold_write
+        self.fireEventsList([['Threshold',self.attr_Threshold_read]])
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Threshold_expert_write
         
     def read_BunchIntensity(self, attr):
         self.debug_stream("In read_BunchIntensity()")
@@ -344,6 +369,18 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                              "BunchAnalyzer()")
         attr.set_value(self.attr_BunchIntensity_read)
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.BunchIntensity_read
+        
+    def read_InputSignal(self, attr):
+        self.debug_stream("In read_InputSignal()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.InputSignal_read) ENABLED START -----#
+        try:
+            self.attr_InputSignal_read = self._bunchAnalyzer.InputSignal
+        except:
+            self.warn_stream("In read_InputSignal() cannot get from "\
+                             "BunchAnalyzer()")
+        attr.set_value(self.attr_InputSignal_read)
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.InputSignal_read
         
     
     
@@ -471,6 +508,14 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
             [PyTango.DevString,
             "Photon Counter histogram property name",
             [] ],
+        'dcctAttr':
+            [PyTango.DevString,
+            "DCCT Attr name from where the sr current is read from time to time",
+            ["AverageCurrent"] ],
+        'dcctDev':
+            [PyTango.DevString,
+            "DCCT Device name from where the sr current is read from time to time",
+            ["sr/di/dcct"] ],
         }
 
 
@@ -493,17 +538,36 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
 
     #    Attribute definitions
     attr_list = {
-        'threshold':
+        'Threshold':
+            [[PyTango.DevUShort,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Threshold",
+                'unit': "%",
+                'max value': "100",
+                'min value': "0",
+            } ],
+        'Threshold_expert':
             [[PyTango.DevUShort,
             PyTango.SCALAR,
             PyTango.READ_WRITE],
             {
+                'label': "Threshold",
+                'unit': "%",
+                'max value': "100",
+                'min value': "0",
+                'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
             } ],
         'BunchIntensity':
             [[PyTango.DevDouble,
             PyTango.SPECTRUM,
             PyTango.READ, 5000]],
+        'InputSignal':
+            [[PyTango.DevDouble,
+            PyTango.SPECTRUM,
+            PyTango.READ, 65536]],
         }
 
 

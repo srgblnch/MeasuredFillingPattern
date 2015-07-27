@@ -4,52 +4,6 @@
 <title> MeasuredFillingPatternPhCt Tango Class User&lsquo;s Guide </title>
 </head>
 <body text="Black" bgcolor="White" link="Blue" vlink="Purple" alink="Red">
-<table border="0" width="100%" cellspacing="0" cellpadding="0" >
-        <td align="center">
-            <a href="http://www.esrf.fr/" target=new>
-                <img src="http://www.esrf.fr/gifs/logo/80.gif" border=0 height="35"></a>
-        </td>
-        <td align="center">
-            <a href="http://www.elettra.trieste.it/" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/elettra_logo.gif" border=0 height="35"></a>
-        </td>
-        <td align="center">
-            <a href="http://www.synchrotron-soleil.fr/" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/soleil_logo.gif" border=0 height="35"></a>
-        </td>
-        <td align="center">
-            <a href="http://www.cells.es/" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/alba.jpg" border=0 height="27"></a>
-        </td>
-        <td align="center">
-            <a href="http://www.tango-controls.org/" target="_top">
-               <img src="http://www.esrf.fr/computing/cs/tango/tango_logo.jpg" alt=""  height="40" /></a>
-        </td>
-        <td align="center">
-            <a href="http://www.desy.de/html/home/index_eng.html" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/desy.gif" border=0 height="26"></a>
-        </td>
-        <td align="center">
-            <a href="http://www.maxlab.lu.se/maxlab/max4/index.html" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/maxlab.gif" border=0 height="21"></a>
-        </td>
-        <td align="center">
-            <a href="http://www.frm2.tum.de/en/index.html" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/frm-2.jpg" border=0 height="24"></a>
-        </td>
-         <td align="center">
-            <a href="http://www.synchrotron.uj.edu.pl/" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/solaris_logo.gif" border=0 height="21"></a>
-        </td>
-         <td align="center">
-            <a href="http://www.anka.kit.edu/english/28.php" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/anka_blau_rot.png" border=0 height="25"></a>
-        </td>
-         <td align="center">
-            <a href="http://www.eli-hu.hu/" target=new>
-                <img src="http://www.esrf.fr/computing/cs/tango/eli-alps.jpg" border=0 height="32"></a>
-        </td>
-   </table>
 <hr>
 <br>
 <center><h2><u><b> MeasuredFillingPatternPhCt Tango Python Class </b></u></h2></center>	<br><br>
@@ -68,8 +22,10 @@
 			</ul>
 			<li> <a href="FullDocument.html#attributes">   Attributes   </a>
 			<ul>
-				<li> <a href="FullDocument.html#attrthreshold"> threshold </a>
+				<li> <a href="FullDocument.html#attrThreshold"> Threshold </a>
+				<li> <a href="FullDocument.html#attrThreshold_expert"> Threshold_expert </a>
 				<li> <a href="FullDocument.html#attrBunchIntensity"> BunchIntensity </a>
+				<li> <a href="FullDocument.html#attrInputSignal"> InputSignal </a>
 			</ul>
 			<li> <a href="FullDocument.html#states">       States       </a>
 		</ul>
@@ -163,6 +119,18 @@
 		<td> Photon Counter histogram property name </td>
 		<td> String </td>
 		<td> none </td>
+	</tr>
+	<tr>
+		<td> dcctAttr </td>
+		<td> DCCT Attr name from where the sr current is read from time to time </td>
+		<td> String </td>
+		<td> AverageCurrent <br> </td>
+	</tr>
+	<tr>
+		<td> dcctDev </td>
+		<td> DCCT Device name from where the sr current is read from time to time </td>
+		<td> String </td>
+		<td> sr/di/dcct <br> </td>
 	</tr>
 </table>
 <br><br>
@@ -475,17 +443,37 @@
 		<td> <center><b> Description </b></center> </td>
 	</tr>
 	<tr>
-		<td> <a href="Attrthreshold.html"> threshold </a> </td>
+		<td> <a href="AttrThreshold.html"> Threshold </a> </td>
 		<td> false </td>
 		<td> false </td>
 		<td> Scalar </td>
-		<td> READ_WRITE </td>
+		<td> READ </td>
 		<td> Tango::DEV_USHORT </td>
 		<td> OPERATOR </td>
 		<td>  </td>
 	</tr>
 	<tr>
+		<td> <a href="AttrThreshold_expert.html"> Threshold_expert </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Scalar </td>
+		<td> READ_WRITE </td>
+		<td> Tango::DEV_USHORT </td>
+		<td> EXPERT </td>
+		<td>  </td>
+	</tr>
+	<tr>
 		<td> <a href="AttrBunchIntensity.html"> BunchIntensity </a> </td>
+		<td> false </td>
+		<td> false </td>
+		<td> Spectrum </td>
+		<td> READ </td>
+		<td> Tango::DEV_DOUBLE </td>
+		<td> OPERATOR </td>
+		<td>  </td>
+	</tr>
+	<tr>
+		<td> <a href="AttrInputSignal.html"> InputSignal </a> </td>
 		<td> false </td>
 		<td> false </td>
 		<td> Spectrum </td>
@@ -501,9 +489,171 @@
 <font size="+1"><u><b> There is no dynamic attribute defined. </b></u></font>
 <br><br>
 <hr>
-<a name="attrthreshold"> </a>
+<a name="attrThreshold"> </a>
 <br><br><br>
-<font size="+1"><u><b> Attribute threshold : </b></u></font>
+<font size="+1"><u><b> Attribute Threshold : </b></u></font>
+<ul>
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Scalar </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_USHORT </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> OPERATOR </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Threshold </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td> % </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td> 100 </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td> 0 </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrThreshold_expert"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute Threshold_expert : </b></u></font>
 <ul>
 </ul>
 <br><br><br>
@@ -528,7 +678,7 @@
 				</tr>
 				<tr>
 					<td> Display Level </td>
-					<td> OPERATOR </td>
+					<td> EXPERT </td>
 				</tr>
 				<tr>
 					<td> Inherited </td>
@@ -557,6 +707,168 @@
 				</tr>
 				<tr>
 					<td> Write allowed for </td>
+					<td> All states </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Center" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Properties </b></font></center></td>
+				</tr>
+				<tr>
+					<td> label </td>
+					<td> Threshold </td>
+				</tr>
+				<tr>
+					<td> unit </td>
+					<td> % </td>
+				</tr>
+				<tr>
+					<td> standard unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> display unit </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> format </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_value </td>
+					<td> 100 </td>
+				</tr>
+				<tr>
+					<td> min_value </td>
+					<td> 0 </td>
+				</tr>
+				<tr>
+					<td> max_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_alarm </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> max_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> min_warning </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_time </td>
+					<td>  </td>
+				</tr>
+				<tr>
+					<td> delta_val </td>
+					<td>  </td>
+				</tr>
+			</table>
+		</td>
+		<TD ALIGN="Right" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Event Criteria </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Archive Periodic </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Relative Change </td>
+					<td> Not set </td>
+				</tr>
+				<tr>
+					<td> Archive Absolute Change </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Push Change event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push Archive event by user code </td>
+					<td> false </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td> </Td><Td> </Td></Tr>
+				<tr>
+					<td> Push DataReady event by user code </td>
+					<td> false </td>
+				</tr>
+			</table>
+		</td>
+	</TR>
+</table>
+<br><br>
+<hr>
+<a name="attrBunchIntensity"> </a>
+<br><br><br>
+<font size="+1"><u><b> Attribute BunchIntensity : </b></u></font>
+<ul>
+</ul>
+<br><br><br>
+<Table Border=0 Cellpadding=0 CELLSPACING=20>
+	<TR>
+		<TD ALIGN="left" VALIGN=top>
+			<Table Border=2 Cellpadding=3 CELLSPACING=0>
+				<tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<td colspan=0> <font size=+1> <center><b> Attribute Definition </b></font></center></td>
+				</tr>
+				<tr>
+					<td> Attribute Type </td>
+					<td> Spectrum  ( 5000 ) </td>
+				</tr>
+				<tr>
+					<td> R/W Type </td>
+					<td> READ </td>
+				</tr>
+				<tr>
+					<td> Data Type </td>
+					<td> Tango::DEV_DOUBLE </td>
+				</tr>
+				<tr>
+					<td> Display Level </td>
+					<td> OPERATOR </td>
+				</tr>
+				<tr>
+					<td> Inherited </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Abstract </td>
+					<td> false </td>
+				</tr>
+				<tr>
+					<td> Polling Period </td>
+					<td> Not polled </td>
+				</tr>
+				<tr>
+					<td> Memorized </td>
+					<td> Not set </td>
+				</tr>
+			<Tr BGCOLOR="#CCCCFF"><Td><Hr></Td><Td><Hr></Td></Tr>
+				<tr>
+					<td> Read allowed for </td>
 					<td> All states </td>
 				</tr>
 			</table>
@@ -671,9 +983,9 @@
 </table>
 <br><br>
 <hr>
-<a name="attrBunchIntensity"> </a>
+<a name="attrInputSignal"> </a>
 <br><br><br>
-<font size="+1"><u><b> Attribute BunchIntensity : </b></u></font>
+<font size="+1"><u><b> Attribute InputSignal : </b></u></font>
 <ul>
 </ul>
 <br><br><br>
@@ -686,7 +998,7 @@
 				</tr>
 				<tr>
 					<td> Attribute Type </td>
-					<td> Spectrum  ( 5000 ) </td>
+					<td> Spectrum  ( 65536 ) </td>
 				</tr>
 				<tr>
 					<td> R/W Type </td>
