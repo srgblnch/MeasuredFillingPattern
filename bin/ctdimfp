@@ -1,4 +1,13 @@
 #!/bin/bash
 
-python MeasuredFillingPatternGui.py $*
+CTRLSHORTNAME='ctdimfp'
+TAURUSGUINAME='MeasuredFillingPatternGui'
+
+if [ -d "$SICILIA/lib/python/site-packages/$CTRLSHORTNAME" ]; then 
+    PATH2GUI=$SICILIA/lib/python/site-packages/$CTRLSHORTNAME
+else
+    PATH2GUI=./
+fi
+
+python $PATH2GUI/$TAURUSGUINAME.py $*
 
