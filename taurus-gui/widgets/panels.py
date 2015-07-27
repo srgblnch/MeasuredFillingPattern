@@ -51,33 +51,50 @@ class StreamingPlot(TaurusPlot):
         TaurusPlot.__init__(self, parent, designMode)
         self.setObjectName("StreamingPlot")
 
-    #TODO: overload the event management to avoid pile-up. Streaming mode like
+    def setModel(self,modelNames):
+        '''Each of the curves needs its own queue of events, the pile up 
+        scenario may happen with one curve and not with another then one shall
+        not affect the plotting of the other.
+        '''
+        TaurusPlot.setModel(self,modelNames)
+        filters = [self.pileUpcheck]
+        self.setEventFilters(filters,preqt=True)
 
-#    def replot(self):
-#        self.debug("<<<Replot>>>")
-#        TaurusPlot.replot()
+    def setEventFilters(self, filters=None, preqt=False, curvenames=None):
+        '''Combines the set event filters from the TaurusPlot superclass with 
+        the TaurusBaseComponent preqt filter lost in the inheritance.
+        '''
+        if curvenames is None: curvenames=self.curves.keys()
+        self.curves_lock.acquire()
+        try:
+            for name in curvenames: self.curves[name].\
+            setEventFilters(filters,preqt)
+        finally:
+            self.curves_lock.release()
+
+    def pileUpcheck(self,evt_src,evt_type,evt_value):
+        self.info("Execution of pileUpCheck(%s)"%(evt_src.name))
+        try:
+            if evt_src.name in self.curves.keys() and \
+            time.time() - evt_value.time > 1.0:
+                self.info("Event for %s older than a seconds, dropping"
+                          %(evt_src.name))
+                return
+        except Exception,e:
+            self.error("evt_src exception: %s"%(e))
+            return
+        #return None stops the filterEvent execution and 
+        #avoids the call to handleEvent
+        return evt_src,evt_type,evt_value
 
 class BunchIntensityPlot(StreamingPlot):
     def __init__(self, parent=None, designMode=False):
         StreamingPlot.__init__(self, parent, designMode)
         self.setObjectName("BunchIntensityPlot")
 
-#    def getmodel(self):
-#        #TODO: robusteness
-#        superClassModel = TaurusPlot.getModel(self)
-#        if type(superClassModel) == list and len(superClassModel) == 1:
-#            attrName = superClassModel[0]
-#            devName = attrName.rsplit('/',1)[0]
-#            return devName
-#        return ""
-#
-#    def setModel(self,model):
-#        self.debug("BunchIntensity model change")
-#        self._devModel = model
-#        TaurusPlot.setModel(self, model+"/bunchIntensity")
-
 
 class InputSignalPlot(StreamingPlot):
     def __init__(self, parent=None, designMode=False):
         StreamingPlot.__init__(self, parent, designMode)
         self.setObjectName("InputSignalPlot")
+

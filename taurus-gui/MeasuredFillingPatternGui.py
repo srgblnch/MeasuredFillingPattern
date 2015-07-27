@@ -34,7 +34,7 @@ from widgets import *
 BUNCHINTENSITY = 'BunchIntensity'
 INPUTSIGNAL = 'InputSignal'
 MEASURES = 'Measures'
-CONFIGURE = 'configure'
+CONFIGURATION = 'configuration'
 EXPERT = 'expert'
 COMMANDS = 'Commands'
 
@@ -52,7 +52,7 @@ specificAttrs = {MEASURES:{CLASSFCT:['FilledBunches',
                                      'resultingFrequency',
                                      'CurrentSampleRate'],
                            CLASSPHCT:['resultingFrequency']},
-                 CONFIGURE:{CLASSFCT:['nAcquisitions',
+                 CONFIGURATION:{CLASSFCT:['nAcquisitions',
                                       'StartingPoint',
                                       'Threshold',
                                       'ScaleH',
@@ -84,7 +84,7 @@ class MainWindow(TaurusGui):
                             TYPE:InputSignalPlot},
               MEASURES:{MODELS:[],
                         TYPE:AttributePanel},
-              CONFIGURE:{MODELS:[],
+              CONFIGURATION:{MODELS:[],
                          TYPE:AttributePanel},
               EXPERT:{MODELS:[],
                       TYPE:AttributePanel},
@@ -187,7 +187,7 @@ class MainWindow(TaurusGui):
                        %(self.getModel(),newModel))
             self.setModel(newModel)
             for component in self._components.keys():
-                if component in [MEASURES,CONFIGURE,EXPERT]:
+                if component in [MEASURES,CONFIGURATION,EXPERT]:
                     className = self._selector.getSelectedDeviceClass()
                     attrNames = specificAttrs[component][className]
                     self._components[component].attrNames = attrNames
