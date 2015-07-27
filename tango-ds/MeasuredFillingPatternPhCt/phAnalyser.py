@@ -129,6 +129,10 @@ class PhCtAnalyzer:#(Analyser):
         self._dcctAttr = dcctAttr
         self.BucketLength = BucketLenght
         self.threshold = threshold
+        
+        self._t0 = []
+        self._tf = []
+        self._resultingFrequency = 0.0
 
     @property
     def PhCtDevName(self):
@@ -241,6 +245,10 @@ class PhCtAnalyzer:#(Analyser):
         self._threshold = value
 
     @property
+    def ResultingFrequency(self):
+        return self._resultingFrequency
+
+    @property
     def TotBucket(self):
         return self._Tot_Bucket
 
@@ -263,6 +271,7 @@ class PhCtAnalyzer:#(Analyser):
                                              event.attr_value.quality))
                             self.Histogram = event.attr_value.value
                             bucket,fil_pat = self.Fil_Pat_Calc(self.Histogram)
+                            self.calculateResultingFrequency()
                             self.emit_results(fil_pat,event.attr_value.quality)
                         else:
                             self.debug("Data is %s"%(event.attr_value.quality))
@@ -280,12 +289,21 @@ class PhCtAnalyzer:#(Analyser):
             self.setFault(msg)
             traceback.print_exc()
 
+    def calculateResultingFrequency(self):
+        samples = len(self._tf)
+        lapses = []
+        for i in range(samples-1):
+            lapses.append(self._tf[i+1]-self._tf[i])
+        self._resultingFrequency = 1/average(lapses)
+
     def emit_results(self,fillingPattern,quality=PyTango.AttrQuality.ATTR_VALID):
         if self._parent:
             self._parent.fireEventsList([['BunchIntensity',
                                           fillingPattern,quality],
                                          ['InputSignal',
-                                          self.Histogram,quality]])
+                                          self.Histogram,quality],
+                                         ['resultingFrequency',
+                                          self._resultingFrequency]])
             self._parent.attr_BunchIntensity_read = fillingPattern
 
     ####
@@ -298,6 +316,7 @@ class PhCtAnalyzer:#(Analyser):
         return array(data_fil)
     def Fil_Pat_Calc(self,y_data):
         '''Calculation of the filling status of the 448 buckets'''
+        t0 = time.time()
         #self.debug("Fil_Pat_Calc()")
         # Usefull variables
         secperbin = self.Resolution*1e-12
@@ -336,6 +355,13 @@ class PhCtAnalyzer:#(Analyser):
         fil_pat = array(fil_pat)
         fil_pat.astype(float)
         fil_pat = fil_pat*cur/sum(fil_pat)
+        tf = time.time()
+        self._t0.append(t0)
+        self._tf.append(tf)
+        self.debug("current calculation in %f"%(tf-t0))
+        while len(self._tf) > 10*3:#self.NAcquisitions:
+            self._t0.pop(0)
+            self._tf.pop(0)
         return (bucket,fil_pat)
     # done original methods of the ph analysis
     ####

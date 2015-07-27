@@ -282,6 +282,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.get_device_properties(self.get_device_class())
         self.attr_Threshold_read = 0
         self.attr_Threshold_expert_read = 0
+        self.attr_resultingFrequency_read = 0.0
+        self.attr_nBunches_read = 0.0
         self.attr_BunchIntensity_read = [0.0]
         self.attr_InputSignal_read = [0.0]
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.init_device) ENABLED START -----#
@@ -301,6 +303,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.set_change_event('Status', True, False)
         self.set_change_event('BunchIntensity', True, False)
         self.set_change_event('InputSignal', True, False)
+        self.set_change_event('resultingFrequency',True,False)
         #prepare the analyzer thread
         self.change_state(PyTango.DevState.OFF)
         if self.createThread():
@@ -358,6 +361,23 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
                              "BunchAnalyzer()")
         self.fireEventsList([['Threshold',self.attr_Threshold_read]])
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Threshold_expert_write
+        
+    def read_resultingFrequency(self, attr):
+        self.debug_stream("In read_resultingFrequency()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.resultingFrequency_read) ENABLED START -----#
+        try:
+            self.attr_resultingFrequency_read = self._bunchAnalyzer.ResultingFrequency
+        except:
+            self.warn_stream("In read_resultingFrequency() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_resultingFrequency_read)
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.resultingFrequency_read
+        
+    def read_nBunches(self, attr):
+        self.debug_stream("In read_nBunches()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.nBunches_read) ENABLED START -----#
+        attr.set_value(self.attr_nBunches_read)
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.nBunches_read
         
     def read_BunchIntensity(self, attr):
         self.debug_stream("In read_BunchIntensity()")
@@ -559,6 +579,24 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
                 'min value': "0",
                 'Display level': PyTango.DispLevel.EXPERT,
                 'Memorized':"true"
+            } ],
+        'resultingFrequency':
+            [[PyTango.DevDouble,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Resulting Frequency",
+                'unit': "Hz",
+                'format': "%3.3f",
+                'description': "Expert attribute to read the frequency with this device is pushing results in the output",
+                'Display level': PyTango.DispLevel.EXPERT,
+            } ],
+        'nBunches':
+            [[PyTango.DevDouble,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Number of Bunches",
             } ],
         'BunchIntensity':
             [[PyTango.DevDouble,
