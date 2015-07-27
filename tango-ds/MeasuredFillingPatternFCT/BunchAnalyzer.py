@@ -148,6 +148,7 @@ class Attribute:
             except Exception,e:
                 self.error("Cannot read %s value: %s"%(self._attrName,e))
         return self._attrValue
+
     @value.setter
     def value(self,value):
         self._attrValue = value
@@ -156,10 +157,12 @@ class Attribute:
         except:
             self.warn("This is not a write value")
 
+
 class BunchAnalyzer:
     def __init__(self,parent=None,
                   timingDevName=None,timingoutput=0,delayTick=18281216,
                   scopeDevName=None,cyclicBuffer=[],
+                  rfDev=None,rfAttr=None,dcctDev=None,dcctAttr=None,
                   threshold=1,nAcquisitions=30,startingPoint=906,
                   max_cyclicBuf=100,alarm_cyclicBuf=50):
         self._parent=parent
@@ -207,9 +210,16 @@ class BunchAnalyzer:
         self.debug("BunchAnalyzer.__init__() scope ok")
         #---- RF
         try:
-            #FIXME: avoid hardcoding
-            self._rfFrequency = Attribute(devName='SR09/rf/sgn-01',
-                                          attrName='Frequency',
+            if rfDev:
+                self._rfDev = rfDev
+            else:
+                self._rfDev = 'SR09/rf/sgn-01'
+            if rfAttr:
+                self._rfAttr = rfAttr
+            else:
+                self._rfAttr = 'Frequency'
+            self._rfFrequency = Attribute(devName=self._rfDev,
+                                          attrName=self._rfAttr,
                                           debug_stream=self.debug,
                                           warn_stream=self.warn,
                                           error_stream=self.error)
@@ -218,9 +228,16 @@ class BunchAnalyzer:
         self.debug("BunchAnalyzer.__init__() RF ok")
         #---- dcct
         try:
-            #FIXME: avoid hardcoding
-            self._currentAttr = Attribute(devName='SR/DI/DCCT',
-                                          attrName='AverageCurrent',
+            if dcctDev:
+                self._dcctDev = dcctDev
+            else:
+                self._dcctDev = 'SR/DI/DCCT'
+            if dcctAttr:
+                self._dcctAttr = dcctAttr
+            else:
+                self._dcctAttr = 'AverageCurrent'
+            self._currentAttr = Attribute(devName=self._dcctDev,
+                                          attrName=self._dcctAttr,
                                           debug_stream=self.debug,
                                           warn_stream=self.warn,
                                           error_stream=self.error)
@@ -422,6 +439,11 @@ class BunchAnalyzer:
     @property
     def ResultingFrequency(self):
         return self._resultingFrequency
+    
+    @property
+    def InputSignal(self):
+        return self._cyclicBuffer[-1:][0]
+        #equivalent to self._cyclicBuffer[len(self._cyclicBuffer)-1]
 
     # done auxiliary setters and getters to modify the behaviour from the device server
     ####
@@ -591,6 +613,8 @@ class BunchAnalyzer:
             eventList.append(['FilledBunches',self._filledBunches])
             eventList.append(['SpuriousBunches',self._spuriousBunches])
             eventList.append(['nBunches',nBunches])
+            self.debug("len InputSignal = %d"%(len(self.InputSignal)))
+            eventList.append(['InputSignal',self.InputSignal])
             #self._parent.fireEventsList(eventList)
             #time stamps when this finish to know: how long it has take,
             tf = time.time()

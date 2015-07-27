@@ -1,28 +1,42 @@
 <?xml version="1.0" encoding="ASCII"?>
 <pogoDsl:PogoSystem xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:pogoDsl="http://www.esrf.fr/tango/pogo/PogoDsl">
-  <classes name="MeasuredFillingPatternFCT" pogoRevision="8.1">
-    <description description="Device to ..." title="Filling Pattern from the FCT" sourcePath="/home/serguei/src/Diagnostics/MeasuredFillingPattern/MeasuredFillingPattern-ds/src/MeasuredFillingPatternFCT" language="Python" filestogenerate="XMI   file,Code files,html Pages" hasMandatoryProperty="true" hasConcreteProperty="true" hasAbstractCommand="false" hasAbstractAttribute="false" descriptionHtmlExists="false">
+  <classes name="MeasuredFillingPatternFCT" pogoRevision="8.4">
+    <description description="Device to ..." title="Filling Pattern from the FCT" sourcePath="/home/serguei/src/Diagnostics/MeasuredFillingPattern/MeasuredFillingPattern-ds/tango-ds/MeasuredFillingPatternFCT" language="Python" filestogenerate="XMI   file,Code files,html Pages" hasMandatoryProperty="true" hasConcreteProperty="true" hasAbstractCommand="false" hasAbstractAttribute="false" descriptionHtmlExists="false">
       <inheritances classname="Device_Impl" sourcePath=""/>
       <identification contact="at cells.es - sblanch" author="sblanch" emailDomain="cells.es" classFamily="Calculation" siteSpecific="" platform="All Platforms" bus="Not Applicable" manufacturer="none" reference=""/>
     </description>
-    <deviceProperties name="erDev" mandatory="true" description="Event Receiver Device name">
-      <type xsi:type="pogoDsl:StringType"/>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-    </deviceProperties>
-    <deviceProperties name="FCTAttribute" mandatory="true" description="Channel of the scope from where the readings are get">
-      <type xsi:type="pogoDsl:StringType"/>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-    </deviceProperties>
-    <deviceProperties name="scoDev" mandatory="true" description="Scope Device name where one channel has the FCT signal">
-      <type xsi:type="pogoDsl:StringType"/>
-      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
-    </deviceProperties>
     <deviceProperties name="AutoStart" description="Configure if the device must start the calculation by default when it is launched">
       <type xsi:type="pogoDsl:BooleanType"/>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
       <DefaultPropValue>True</DefaultPropValue>
     </deviceProperties>
+    <deviceProperties name="FCTAttribute" mandatory="true" description="Channel of the scope from where the readings are get">
+      <type xsi:type="pogoDsl:StringType"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </deviceProperties>
+    <deviceProperties name="RfGeneratorAttr" mandatory="true" description="RfGenerator Attr name from where the frequency is read from time to time">
+      <type xsi:type="pogoDsl:StringType"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </deviceProperties>
     <deviceProperties name="RfGeneratorDev" mandatory="true" description="RfGenerator Device name from where the frequency is read from time to time">
+      <type xsi:type="pogoDsl:StringType"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </deviceProperties>
+    <deviceProperties name="dcctAttr" description="DCCT Attr name from where the sr current is read from time to time">
+      <type xsi:type="pogoDsl:StringType"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <DefaultPropValue>AverageCurrent</DefaultPropValue>
+    </deviceProperties>
+    <deviceProperties name="dcctDev" description="DCCT Device name from where the sr current is read from time to time">
+      <type xsi:type="pogoDsl:StringType"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <DefaultPropValue>sr/di/dcct</DefaultPropValue>
+    </deviceProperties>
+    <deviceProperties name="erDev" mandatory="true" description="Event Receiver Device name">
+      <type xsi:type="pogoDsl:StringType"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+    </deviceProperties>
+    <deviceProperties name="scoDev" mandatory="true" description="Scope Device name where one channel has the FCT signal">
       <type xsi:type="pogoDsl:StringType"/>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </deviceProperties>
@@ -199,6 +213,14 @@
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
       <properties description="Expert attribute to read the frequency with this device is pushing results in the output" label="Resulting Frequency" unit="Hz" standardUnit="" displayUnit="" format="%3.3f" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
+    <attributes name="CurrentSampleRate" attType="Scalar" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="" maxY="" allocReadMember="true" isDynamic="false">
+      <dataType xsi:type="pogoDsl:DoubleType"/>
+      <changeEvent fire="false" libCheckCriteria="false"/>
+      <archiveEvent fire="false" libCheckCriteria="false"/>
+      <dataReadyEvent fire="false" libCheckCriteria="true"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <properties description="" label="Current Sample Rate" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
+    </attributes>
     <attributes name="BunchIntensity" attType="Spectrum" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="5000" maxY="" allocReadMember="true" isDynamic="false">
       <dataType xsi:type="pogoDsl:DoubleType"/>
       <changeEvent fire="false" libCheckCriteria="false"/>
@@ -214,6 +236,14 @@
       <dataReadyEvent fire="false" libCheckCriteria="true"/>
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
       <properties description="Internal use attribute to have information about how the buffer changes" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
+    </attributes>
+    <attributes name="InputSignal" attType="Spectrum" rwType="READ" displayLevel="OPERATOR" polledPeriod="0" maxX="65536" maxY="" allocReadMember="true" isDynamic="false">
+      <dataType xsi:type="pogoDsl:DoubleType"/>
+      <changeEvent fire="false" libCheckCriteria="false"/>
+      <archiveEvent fire="false" libCheckCriteria="false"/>
+      <dataReadyEvent fire="false" libCheckCriteria="true"/>
+      <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
+      <properties description="" label="" unit="" standardUnit="" displayUnit="" format="" maxValue="" minValue="" maxAlarm="" minAlarm="" maxWarning="" minWarning="" deltaTime="" deltaValue=""/>
     </attributes>
     <attributes name="cyclicBuffer" attType="Image" rwType="READ" displayLevel="EXPERT" polledPeriod="0" maxX="40000" maxY="50" allocReadMember="true" isDynamic="false">
       <dataType xsi:type="pogoDsl:DoubleType"/>
