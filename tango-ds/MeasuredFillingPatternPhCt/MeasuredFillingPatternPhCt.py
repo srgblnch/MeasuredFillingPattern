@@ -336,6 +336,18 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Threshold_read
         
+    def is_Threshold_allowed(self, attr):
+        self.debug_stream("In is_Threshold_allowed()")
+        if attr==PyTango.AttReqType.READ_REQ:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        else:
+            state_ok = not(self.get_state() in [])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_Threshold_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_Threshold_allowed
+        return state_ok
+        
     def read_Threshold_expert(self, attr):
         self.debug_stream("In read_Threshold_expert()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.Threshold_expert_read) ENABLED START -----#
@@ -362,6 +374,19 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.fireEventsList([['Threshold',self.attr_Threshold_read]])
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Threshold_expert_write
         
+    def is_Threshold_expert_allowed(self, attr):
+        self.debug_stream("In is_Threshold_expert_allowed()")
+        if attr==PyTango.AttReqType.READ_REQ:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        else:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_Threshold_expert_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_Threshold_expert_allowed
+        return state_ok
+        
     def read_resultingFrequency(self, attr):
         self.debug_stream("In read_resultingFrequency()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.resultingFrequency_read) ENABLED START -----#
@@ -372,12 +397,36 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         attr.set_value(self.attr_resultingFrequency_read)
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.resultingFrequency_read
         
+    def is_resultingFrequency_allowed(self, attr):
+        self.debug_stream("In is_resultingFrequency_allowed()")
+        if attr==PyTango.AttReqType.READ_REQ:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        else:
+            state_ok = not(self.get_state() in [])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_resultingFrequency_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_resultingFrequency_allowed
+        return state_ok
+        
     def read_nBunches(self, attr):
         self.debug_stream("In read_nBunches()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.nBunches_read) ENABLED START -----#
         attr.set_value(self.attr_nBunches_read)
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.nBunches_read
+        
+    def is_nBunches_allowed(self, attr):
+        self.debug_stream("In is_nBunches_allowed()")
+        if attr==PyTango.AttReqType.READ_REQ:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        else:
+            state_ok = not(self.get_state() in [])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_nBunches_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_nBunches_allowed
+        return state_ok
         
     def read_BunchIntensity(self, attr):
         self.debug_stream("In read_BunchIntensity()")
@@ -390,6 +439,18 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         attr.set_value(self.attr_BunchIntensity_read)
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.BunchIntensity_read
         
+    def is_BunchIntensity_allowed(self, attr):
+        self.debug_stream("In is_BunchIntensity_allowed()")
+        if attr==PyTango.AttReqType.READ_REQ:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        else:
+            state_ok = not(self.get_state() in [])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_BunchIntensity_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_BunchIntensity_allowed
+        return state_ok
+        
     def read_InputSignal(self, attr):
         self.debug_stream("In read_InputSignal()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.InputSignal_read) ENABLED START -----#
@@ -401,6 +462,18 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         attr.set_value(self.attr_InputSignal_read)
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.InputSignal_read
+        
+    def is_InputSignal_allowed(self, attr):
+        self.debug_stream("In is_InputSignal_allowed()")
+        if attr==PyTango.AttReqType.READ_REQ:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        else:
+            state_ok = not(self.get_state() in [])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_InputSignal_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_InputSignal_allowed
+        return state_ok
         
     
     
@@ -431,6 +504,15 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self._startCmd.set()
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Start
         
+    def is_Start_allowed(self):
+        self.debug_stream("In is_Start_allowed()")
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_Start_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_Start_allowed
+        return state_ok
+        
     def Stop(self):
         """ 
         
@@ -442,6 +524,15 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.Stop) ENABLED START -----#
         self._stopCmd.set()
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Stop
+        
+    def is_Stop_allowed(self):
+        self.debug_stream("In is_Stop_allowed()")
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_Stop_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_Stop_allowed
+        return state_ok
         
     def Exec(self, argin):
         """ 
