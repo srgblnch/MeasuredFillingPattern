@@ -45,9 +45,9 @@ class Component(TaurusBaseComponent):
         if not new:
             return
         if not old:
-            self.info("Setting %s: %s"%(tag,new))
+            self.debug("Setting %s: %s"%(tag,new))
         else:
-            self.info("Changing %s: %s to %s"%(tag,old,new))
+            self.debug("Changing %s: %s to %s"%(tag,old,new))
 
     @property
     def parent(self):
@@ -126,13 +126,13 @@ class Component(TaurusBaseComponent):
             for attrName in self._attrNames:
                 model.append("%s/%s"%(devName,attrName))
             self._widget.setModel(model)
-            self.info("setmodel(%s)"%(self._widget.getModel()))
+            self.debug("setmodel(%s)"%(self._widget.getModel()))
             return True
         return False
     
     def _setModelWithCommands(self,devName):
         if self.haveCommands:
-            self.info("setmodel(%s)"%(self._devName))
+            self.debug("setmodel(%s)"%(self._devName))
             self._widget.setModel(self._devName)
             return True
         return False
