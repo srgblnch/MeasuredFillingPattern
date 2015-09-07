@@ -446,7 +446,6 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
         try:
             self.debug_stream("self._bunchAnalyzer = %s"%(self._bunchAnalyzer))
             self.attr_ScaleH_read = self._bunchAnalyzer.ScopeScaleH
-            print("..")
         except:
             self.warn_stream("In read_ScaleH() cannot get from BunchAnalyzer()")
         attr.set_value(self.attr_ScaleH_read)
