@@ -284,6 +284,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.attr_Threshold_expert_read = 0
         self.attr_resultingFrequency_read = 0.0
         self.attr_nBunches_read = 0.0
+        self.attr_SpuriousBunches_read = 0
+        self.attr_FilledBunches_read = 0
         self.attr_BunchIntensity_read = [0.0]
         self.attr_InputSignal_read = [0.0]
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.init_device) ENABLED START -----#
@@ -304,6 +306,9 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.set_change_event('BunchIntensity', True, False)
         self.set_change_event('InputSignal', True, False)
         self.set_change_event('resultingFrequency',True,False)
+        self.set_change_event('FilledBunches',True,False)
+        self.set_change_event('SpuriousBunches',True,False)
+        self.set_change_event('nBunches',True,False)
         #prepare the analyzer thread
         self.change_state(PyTango.DevState.OFF)
         if self.createThread():
@@ -412,6 +417,11 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
     def read_nBunches(self, attr):
         self.debug_stream("In read_nBunches()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.nBunches_read) ENABLED START -----#
+        try:
+            self.attr_nBunches_read = self._bunchAnalyzerFilledBunches-\
+                                      self._bunchAnalyzer.SpuriousBunches
+        except:
+            self.warn_stream("In read_nBunches() cannot get from BunchAnalyzer()")
         attr.set_value(self.attr_nBunches_read)
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.nBunches_read
@@ -426,6 +436,52 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_nBunches_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_nBunches_allowed
+        return state_ok
+        
+    def read_SpuriousBunches(self, attr):
+        self.debug_stream("In read_SpuriousBunches()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.SpuriousBunches_read) ENABLED START -----#
+        try:
+            self.attr_SpuriousBunches_read = self._bunchAnalyzer.SpuriousBunches
+        except:
+            self.warn_stream("In read_SpuriousBunches() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_SpuriousBunches_read)
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.SpuriousBunches_read
+        
+    def is_SpuriousBunches_allowed(self, attr):
+        self.debug_stream("In is_SpuriousBunches_allowed()")
+        if attr==PyTango.AttReqType.READ_REQ:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        else:
+            state_ok = not(self.get_state() in [])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_SpuriousBunches_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_SpuriousBunches_allowed
+        return state_ok
+        
+    def read_FilledBunches(self, attr):
+        self.debug_stream("In read_FilledBunches()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.FilledBunches_read) ENABLED START -----#
+        try:
+            self.attr_FilledBunches_read = self._bunchAnalyzer.FilledBunches
+        except:
+            self.warn_stream("In read_FilledBunches() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_FilledBunches_read)
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.FilledBunches_read
+        
+    def is_FilledBunches_allowed(self, attr):
+        self.debug_stream("In is_FilledBunches_allowed()")
+        if attr==PyTango.AttReqType.READ_REQ:
+            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+                PyTango.DevState.INIT])
+        else:
+            state_ok = not(self.get_state() in [])
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_FilledBunches_allowed) ENABLED START -----#
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_FilledBunches_allowed
         return state_ok
         
     def read_BunchIntensity(self, attr):
@@ -688,6 +744,20 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
             PyTango.READ],
             {
                 'label': "Number of Bunches",
+            } ],
+        'SpuriousBunches':
+            [[PyTango.DevShort,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Spurious Bunches",
+            } ],
+        'FilledBunches':
+            [[PyTango.DevShort,
+            PyTango.SCALAR,
+            PyTango.READ],
+            {
+                'label': "Filled Bunches",
             } ],
         'BunchIntensity':
             [[PyTango.DevDouble,
