@@ -129,10 +129,15 @@ class PhCtAnalyzer:#(Analyser):
         self._dcctAttr = dcctAttr
         self.BucketLength = BucketLenght
         self.threshold = threshold
-        
         self._t0 = []
         self._tf = []
+        #---- outputs
+        self._bunchIntensity = []
+        self._bunchIntensityQuality = PyTango.AttrQuality.ATTR_INVALID
+        self._filledBunches = 0
+        self._spuriousBunches = 0
         self._resultingFrequency = 0.0
+        
 
     @property
     def PhCtDevName(self):
@@ -252,6 +257,22 @@ class PhCtAnalyzer:#(Analyser):
     def TotBucket(self):
         return self._Tot_Bucket
 
+    @property
+    def BunchIntensity(self):
+        return self._bunchIntensity
+
+    @property
+    def BunchIntensityQuality(self):
+        return self._bunchIntensityQuality
+
+    @property
+    def FilledBunches(self):
+        return self._filledBunches
+
+    @property
+    def SpuriousBunches(self):
+        return self._spuriousBunches
+
     #a callback method for the scope channel attribute
     def push_event(self,event):
         try:
@@ -270,9 +291,11 @@ class PhCtAnalyzer:#(Analyser):
                                        %(len(event.attr_value.value),
                                              event.attr_value.quality))
                             self.Histogram = event.attr_value.value
-                            bucket,fil_pat = self.Fil_Pat_Calc(self.Histogram)
+                            self._bunchIntensityQuality = \
+                            event.attr_value.quality
+                            self.calculateMeasurements()
                             self.calculateResultingFrequency()
-                            self.emit_results(fil_pat,event.attr_value.quality)
+                            self.emit_results()
                         else:
                             self.debug("Data is %s"%(event.attr_value.quality))
                     else:
@@ -289,6 +312,14 @@ class PhCtAnalyzer:#(Analyser):
             self.setFault(msg)
             traceback.print_exc()
 
+    def calculateMeasurements(self):
+        bucket,self._bunchIntensity = self.Fil_Pat_Calc(self.Histogram)
+        self.debug("len(_bunchIntensity) = %d"%(len(self._bunchIntensity)))
+        self._filledBunches = self.bunchCount(self._bunchIntensity)
+        self.debug("FilledBunches = %d"%self._filledBunches)
+        self._spuriousBunches = self.spuriousBunches(self._bunchIntensity)
+        self.debug("SpuriousBunches = %d"%self._spuriousBunches)
+
     def calculateResultingFrequency(self):
         samples = len(self._tf)
         lapses = []
@@ -296,14 +327,21 @@ class PhCtAnalyzer:#(Analyser):
             lapses.append(self._tf[i+1]-self._tf[i])
         self._resultingFrequency = 1/average(lapses)
 
-    def emit_results(self,fillingPattern,quality=PyTango.AttrQuality.ATTR_VALID):
+    def emit_results(self):
         if self._parent:
+            nBunches = self._filledBunches-self._spuriousBunches
             self._parent.fireEventsList([['BunchIntensity',
-                                          fillingPattern,quality],
+                                          self.BunchIntensity,
+                                          self.BunchIntensityQuality],
                                          ['InputSignal',
-                                          self.Histogram,quality],
+                                          self.Histogram,
+                                          self.BunchIntensityQuality],
                                          ['resultingFrequency',
-                                          self._resultingFrequency]])
+                                          self._resultingFrequency],
+                                         ['FilledBunches',self._filledBunches],
+                                         ['SpuriousBunches',
+                                          self._spuriousBunches],
+                                         ['nBunches',nBunches]])
             self._parent.attr_BunchIntensity_read = fillingPattern
 
     ####
@@ -363,6 +401,115 @@ class PhCtAnalyzer:#(Analyser):
             self._t0.pop(0)
             self._tf.pop(0)
         return (bucket,fil_pat)
+    
+    def bunchCount(self,vec_p_to_p):
+        '''TODO: document this method'''
+        #FIXME: parameters would be in side the class?
+        count = 0
+        bunch = 0
+        #TODO: document the loop
+        for count in range(0, len(vec_p_to_p)-1):
+            if(vec_p_to_p[count] > 0):
+                bunch = bunch + 1
+        return bunch
+
+    def spuriousBunches(self,vec_p_to_p):
+        '''TODO: document this method'''
+        #FIXME: parameters would be in side the class?
+        i = 0
+        j = 0
+        sp_bun = 0
+        #TODO: document
+        if (vec_p_to_p [i] != 0 and vec_p_to_p[i+1] == 0):
+            sp_bun = sp_bun + 1
+        i = i + 1 
+        #TODO: document the loop
+        while (i < len(vec_p_to_p)-1):
+            if (i < len(vec_p_to_p)-10 and \
+               vec_p_to_p[i-1] == 0 and \
+               vec_p_to_p[i] != 0 and \
+               vec_p_to_p[i+10] == 0):
+                while (j < 10):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-9 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+9] == 0):
+                while (j < 9):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-8 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+8] == 0):
+                while (j < 8):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-7 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+7] == 0):
+                while (j < 7):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-6 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+6] == 0):
+                while (j < 6):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-5 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+5] == 0):
+                while (j < 5):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-4 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+4] == 0):
+                while (j < 4):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-3 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+3] == 0):
+                while (j < 3):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-2 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+2] == 0):
+                while (j < 2):
+                    if (vec_p_to_p[i+j] != 0):
+                        sp_bun = sp_bun +1
+                    j = j + 1
+            elif (i < len(vec_p_to_p)-1 and \
+                 vec_p_to_p[i-1] == 0 and \
+                 vec_p_to_p[i] != 0 and \
+                 vec_p_to_p[i+1] == 0):
+                sp_bun = sp_bun +1
+                j = 1
+            i = i + j + 1
+            j = 0
+        if (vec_p_to_p[len(vec_p_to_p)-1] != 0 and \
+           vec_p_to_p[len(vec_p_to_p)-2] == 0 ):
+            sp_bun = sp_bun + 1
+    
+        return sp_bun
     # done original methods of the ph analysis
     ####
     
