@@ -37,6 +37,7 @@ MEASURES = 'Measures'
 CONFIGURATION = 'configuration'
 EXPERT = 'expert'
 COMMANDS = 'Commands'
+STATE = 'State'
 
 MODELS = 'models'
 TYPE = 'type'
@@ -51,7 +52,10 @@ specificAttrs = {MEASURES:{CLASSFCT:['FilledBunches',
                                      'nBunches',
                                      'resultingFrequency',
                                      'CurrentSampleRate'],
-                           CLASSPHCT:['resultingFrequency']},
+                           CLASSPHCT:['FilledBunches',
+                                      'SpuriousBunches',
+                                      'nBunches',
+                                      'resultingFrequency']},
                  CONFIGURATION:{CLASSFCT:['nAcquisitions',
                                       'StartingPoint',
                                       'Threshold',
@@ -66,6 +70,8 @@ specificAttrs = {MEASURES:{CLASSFCT:['FilledBunches',
                                    'OffsetH_expert',
                                    'TimingTrigger_expert'],
                          CLASSPHCT:['Threshold_expert']},
+                 STATE:{CLASSFCT:['State','Status'],
+                        CLASSPHCT:['State','Status']}
                  }
 
 class MainWindow(TaurusGui):
@@ -88,7 +94,9 @@ class MainWindow(TaurusGui):
                          TYPE:AttributePanel},
               EXPERT:{MODELS:[],
                       TYPE:AttributePanel},
-              COMMANDS:{TYPE:CommandPannel}}
+              COMMANDS:{TYPE:CommandPannel},
+              STATE:{MODELS:[],
+                     TYPE:AttributePanel}}
 
     def initComponents(self):
         self._components = {}
@@ -187,7 +195,7 @@ class MainWindow(TaurusGui):
                        %(self.getModel(),newModel))
             self.setModel(newModel)
             for component in self._components.keys():
-                if component in [MEASURES,CONFIGURATION,EXPERT]:
+                if component in [MEASURES,CONFIGURATION,EXPERT,STATE]:
                     className = self._selector.getSelectedDeviceClass()
                     attrNames = specificAttrs[component][className]
                     self._components[component].attrNames = attrNames
