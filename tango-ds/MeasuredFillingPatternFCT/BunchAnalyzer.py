@@ -112,6 +112,9 @@ class Attribute:
             self._attrEvent = self._devProxy.subscribe_event(self._attrName,
                                                 PyTango.EventType.CHANGE_EVENT,
                                                                self)
+        except DevFailed,e:
+            self.error("%s::subscribe_event() DevFailed: %s"%(self._name,e))
+            raise e
         except Exception,e:
             self.error("%s::subscribe_event() exception %s:"%(self._name,e))
         else:
@@ -147,6 +150,7 @@ class Attribute:
                 self._attrValue = self._devProxy[self._attrName].value
             except Exception,e:
                 self.error("Cannot read %s value: %s"%(self._attrName,e))
+                raise e
         return self._attrValue
 
     @value.setter
@@ -170,9 +174,10 @@ class BunchAnalyzer:
         try:
             self._timingDevName = timingDevName
             self._timingProxy = PyTango.DeviceProxy(self._timingDevName)
-        except:
+        except Exception,e:
             self._timingDevName = ""
             self._timingProxy = None
+            raise e
         self._timingoutput = timingoutput
         self._delayTick = delayTick
         self.debug("BunchAnalyzer.__init__() timming ok")
@@ -203,10 +208,11 @@ class BunchAnalyzer:
                                            warn_stream=self.warn,
                                            error_stream=self.error)
         except Exception,e:
-            self.error("BunchAnalyzer.__init__() exception: %s"%(str(e)))
+            self.error("BunchAnalyzer.__init__() scope exception: %s"%(str(e)))
             self._scopeDevName = ""
             self._scopeProxy = None
             self._scopeSampleRate = None
+            raise e
         self.debug("BunchAnalyzer.__init__() scope ok")
         #---- RF
         try:
@@ -224,7 +230,9 @@ class BunchAnalyzer:
                                           warn_stream=self.warn,
                                           error_stream=self.error)
         except Exception,e:
+            self.error("BunchAnalyzer.__init__() RF exception: %s"%(str(e)))
             self._rfFrequency = None#499650374.85
+            raise e
         self.debug("BunchAnalyzer.__init__() RF ok")
         #---- dcct
         try:
@@ -243,7 +251,9 @@ class BunchAnalyzer:
                                           error_stream=self.error)
             
         except Exception,e:
+            self.error("BunchAnalyzer.__init__() DCCT exception: %s"%(str(e)))
             self._currentAttr = None
+            raise e
         self.debug("BunchAnalyzer.__init__() DCCT ok")
         #---- internals
         self._threshold = threshold
