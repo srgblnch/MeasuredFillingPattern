@@ -155,11 +155,14 @@ class Attribute:
 
     @value.setter
     def value(self,value):
-        self._attrValue = value
         try:
             self._devProxy[self._attrName] = value
-        except:
-            self.warn("This is not a write value")
+        except Exception,e:
+            self.error("Cannot write %s/%s due to exception: %s"
+                       %(self._devName,self._attrName,e))
+        else:
+            self.info("Write to %s (%s)"%(self._attrName,str(value)))
+            self._attrValue = value
 
 
 class BunchAnalyzer:
@@ -359,7 +362,7 @@ class BunchAnalyzer:
 
     def cbScopeScaleH(self,value):
         if hasattr(self,'_scopeScaleH') and \
-           self._scopeScaleH.value != value:
+        self._scopeScaleH.value != value:
             self.debug("Horizontal Scale changed: clean the cyclic buffer")
             self.CyclicBuffer = []
             self._scopeScaleH.value = value
@@ -374,7 +377,7 @@ class BunchAnalyzer:
 
     def cbScopeOffsetH(self,value):
         if hasattr(self,'_scopeOffsetH') and \
-           self._scopeOffsetH.value != value:
+        self._scopeOffsetH.value != value:
             self.debug("Horizontal Offset changed: clean the cyclic buffer")
             self.CyclicBuffer = []
             self._scopeOffsetH.value = value
