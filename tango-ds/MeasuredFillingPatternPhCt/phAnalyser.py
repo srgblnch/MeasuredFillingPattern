@@ -99,12 +99,13 @@ import traceback
 
 
 
-class PhCtAnalyzer:#(Analyser):
+class PhCtAnalyzer(object):#(Analyser):
     def __init__(self,PhCtDevName,
                  histogramAttr="histogram",resolutionAttr="resolution",
                  dcctDev='SR/DI/DCCT',dcctAttr='AverageCurrent',
                  BucketLenght=2*1e-9,threshold=1,
                  parent=None):
+        super(PhCtAnalyzer,self).__init__()
         self._parent = parent#for the logging
         #Analyser.__init__(self, parent)
         #super(PhCtAnalyzer,self).__init__(parent)
