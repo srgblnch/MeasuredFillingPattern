@@ -101,11 +101,12 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
         status = "%s%s\n"%(msg,current)
         self.set_status(status)
         self.push_change_event('Status',status)
+        self.info_stream("Status change to %s"%(status))
         if important and not current in self._important_logs:
             self._important_logs.append(current)
 
     def change_state(self,newstate):
-        self.debug_stream("In %s::change_state(%s)"%(self.get_name(),str(newstate)))
+        self.info_stream("In %s::change_state(%s)"%(self.get_name(),str(newstate)))
         self.set_state(newstate)
         self.push_change_event('State',newstate)
         self.cleanAllImportantLogs()
@@ -130,9 +131,12 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
                 self._startCmd.set()
             self._stopCmd = threading.Event()#Stop command has been received
             self._stopCmd.clear()
-            self._thread = threading.Thread(target=self.analyzerThread)
+            waitThread = threading.Event()
+            waitThread.clear()
+            self._thread = threading.Thread(target=self.analyzerThread,args=(waitThread,))
             self._thread.setDaemon(True)
             self._thread.start()
+            waitThread.wait()
             self.debug_stream("In %s::createThread(): Thread created."%self.get_name())
         except Exception,e:
             self.warn_stream("In %s::createThread(): Exception creating thread: %s."%(self.get_name(),e))
@@ -151,8 +155,8 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
             if self._thread.isAlive():
                 self.debug_stream("In %s::deleteThread(): Thread joined."%self.get_name())
     
-    def analyzerThread(self):
-        self.debug_stream("In %s::analyzerThread(): Thread started."%self.get_name())
+    def analyzerThread(self,waitThread):
+        self.info_stream("In %s::analyzerThread(): Thread started."%self.get_name())
         if not hasattr(self,'_joinerEvent'):
             raise Exception("Not possible to start the loop because it have not end condition")
 #        self.change_state(PyTango.DevState.STANDBY)#FIXME: change the state when it starts to work
@@ -178,9 +182,11 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
                                 alarm_cyclicBuf=ALARM_SIZE_CYCLIC_BUFFER)
             self.debug_stream("Build BunchAnalyser made")
             self.attr_TimingTrigger_read = self._bunchAnalyzer.DelayTick
+            waitThread.set()
         except:
             self.change_state(PyTango.DevState.FAULT)
             self.addStatusMsg("Cannot build the analyzer",important=True)
+            waitThread.set()
             return
 #        try:
 #            self.readRfAttributes()
@@ -481,8 +487,11 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
         try:
             self._bunchAnalyzer.ScopeScaleH = self.attr_ScaleH_expert_read
             self.attr_ScaleH_read = self._bunchAnalyzer.ScopeScaleH
-        except:
-            self.warn_stream("In write_ScaleH() cannot set in BunchAnalyzer()")
+        except Exception,e:
+            self.warn_stream("In write_ScaleH() cannot set in BunchAnalyzer(): %s"%e)
+            traceback.print_exc()
+#        except:
+#            self.warn_stream("In write_ScaleH() cannot set in BunchAnalyzer()")
         self.fireEventsList([['ScaleH',self.attr_ScaleH_read]])
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternFCT.ScaleH_expert_write
         

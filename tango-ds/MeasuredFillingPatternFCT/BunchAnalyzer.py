@@ -65,17 +65,21 @@ META = u"""
     Author: Laura Torino
 """.encode('latin1')
 
-import time
-from numpy import *
-from copy import copy,deepcopy
-from scipy import signal
-import PyTango
 
-class Attribute:
+from copy import copy,deepcopy
+from numpy import *
+import PyTango
+from scipy import signal
+import time
+import traceback
+
+
+class Attribute(object):
     def __init__(self,devName='SR/DI/DCCT',attrName='AverageCurrent',
                  callback=None,
                  info_stream=None,error_stream=None,
                  warn_stream=None,debug_stream=None):
+        super(Attribute,self).__init__()
         try:
             self._devName = devName
             self._attrName = attrName
@@ -143,6 +147,7 @@ class Attribute:
         except Exception,e:
             self.error("%s::PushEvent() callback exception: %s"
                        %(self._name,e))
+            traceback.print_exc()
     @property
     def value(self):
         if self._attrValue == None:
@@ -165,13 +170,14 @@ class Attribute:
             self._attrValue = value
 
 
-class BunchAnalyzer:
+class BunchAnalyzer(object):
     def __init__(self,parent=None,
                   timingDevName=None,timingoutput=0,delayTick=18281216,
                   scopeDevName=None,cyclicBuffer=[],
                   rfDev=None,rfAttr=None,dcctDev=None,dcctAttr=None,
                   threshold=1,nAcquisitions=30,startingPoint=906,
                   max_cyclicBuf=100,alarm_cyclicBuf=50):
+        super(BunchAnalyzer,self).__init__()
         self._parent=parent
         #---- timing
         try:
@@ -357,7 +363,7 @@ class BunchAnalyzer:
         return self._scopeScaleH.value
     
     @ScopeScaleH.setter
-    def ScopeScaleH(self):
+    def ScopeScaleH(self,value):
         self._scopeScaleH.value = value
 
     def cbScopeScaleH(self,value):
@@ -591,7 +597,7 @@ class BunchAnalyzer:
         #    Timing = 146351002 ns,
         #    OffsetH = 200 ns,
         #    ScaleH = 100 ns
-        start = self.StartingPoint
+        start = int(self.StartingPoint)
         #NOT WORKING IF THE BEAM IS UNSTABLE
         #if len(self._cyclicBuffer)==0: return
         self.debug("cyclic buffer size: %d"%(len(self._cyclicBuffer)))
