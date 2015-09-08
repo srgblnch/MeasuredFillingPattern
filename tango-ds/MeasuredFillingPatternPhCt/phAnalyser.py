@@ -243,7 +243,6 @@ class PhCtAnalyzer(object):#(Analyser):
 
     @property
     def threshold(self):
-        self.debug("Threshold = %d"%(self._threshold))
         return self._threshold
     
     @threshold.setter
@@ -343,7 +342,7 @@ class PhCtAnalyzer(object):#(Analyser):
                                          ['SpuriousBunches',
                                           self._spuriousBunches],
                                          ['nBunches',nBunches]])
-            self._parent.attr_BunchIntensity_read = fillingPattern
+            self._parent.attr_BunchIntensity_read = self.BunchIntensity
 
     ####
     # original methods of the ph analysis

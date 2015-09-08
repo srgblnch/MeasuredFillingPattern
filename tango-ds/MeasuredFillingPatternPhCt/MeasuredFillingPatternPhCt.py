@@ -283,7 +283,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.attr_Threshold_read = 0
         self.attr_Threshold_expert_read = 0
         self.attr_resultingFrequency_read = 0.0
-        self.attr_nBunches_read = 0.0
+        self.attr_nBunches_read = 0
         self.attr_SpuriousBunches_read = 0
         self.attr_FilledBunches_read = 0
         self.attr_BunchIntensity_read = [0.0]
@@ -372,7 +372,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.attr_threshold_write = self.attr_threshold_expert_read
         try:
             self._bunchAnalyzer.threshold = self.attr_threshold_write
-            self.attr_threshold_read = self._bunchAnalyzer.threshold
+            self.attr_Threshold_read = self._bunchAnalyzer.threshold
         except:
             self.warn_stream("In write_threshold() cannot set in "\
                              "BunchAnalyzer()")
@@ -418,7 +418,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.debug_stream("In read_nBunches()")
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.nBunches_read) ENABLED START -----#
         try:
-            self.attr_nBunches_read = self._bunchAnalyzerFilledBunches-\
+            self.attr_nBunches_read = self._bunchAnalyzer.FilledBunches-\
                                       self._bunchAnalyzer.SpuriousBunches
         except:
             self.warn_stream("In read_nBunches() cannot get from BunchAnalyzer()")
@@ -739,7 +739,7 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
                 'Display level': PyTango.DispLevel.EXPERT,
             } ],
         'nBunches':
-            [[PyTango.DevDouble,
+            [[PyTango.DevShort,
             PyTango.SCALAR,
             PyTango.READ],
             {
