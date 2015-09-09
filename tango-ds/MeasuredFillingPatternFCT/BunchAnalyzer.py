@@ -95,6 +95,7 @@ class Attribute(object):
                 self._attrValue = None
             self._attrEvent = None
             self._callback = callback
+            self._writeSend = False
             self.subscribe_event()
         except Exception,e:
             print("Attribute %s/%s init exception %s"%(devName,attrName,e))
@@ -143,8 +144,20 @@ class Attribute(object):
         except Exception,e:
             self.error("%s::PushEvent() exception %s:"%(self._name,e))
         try:#when there is a callback, it's responsible to store the new value
+            if self._writeSend:
+                if event.attr_value.value == self._attrValue:
+                    self.info("%s::PushEvent() write (%s) applied confirmed"
+                              %(self._name,event.attr_value.value))
+                    self._writeSend = False
+                    return
+                else:
+                    self.info("%s::PushEvent() write (%s) not applied (%s) yet"
+                              %(self._name,self._attrValue,
+                                event.attr_value.value))
+                    return
             if self._callback != None:
-                self.debug("%s::PushEvent() callback called"%(self._name))
+                self.info("%s::PushEvent() callback call with value %s"
+                          %(self._name,str(event.attr_value.value)))
                 self._callback(event.attr_value.value)
             else:
                 self._attrValue = event.attr_value.value
@@ -166,12 +179,14 @@ class Attribute(object):
     def value(self,value):
         try:
             self._devProxy[self._attrName] = value
+            self._writeSend = True
         except Exception,e:
             self.error("Cannot write %s/%s due to exception: %s"
                        %(self._devName,self._attrName,e))
         else:
-            self.info("Write to %s (%s)"%(self._attrName,str(value)))
-            self._attrValue = value
+            if self._attrValue != value:
+                self.info("Write to %s (%s)"%(self._attrName,str(value)))
+                self._attrValue = value
 
 
 class BunchAnalyzer(object):
@@ -394,7 +409,7 @@ class BunchAnalyzer(object):
     def cbScopeOffsetH(self,value):
         if hasattr(self,'_scopeOffsetH') and \
         self._scopeOffsetH.value != value:
-            self.debug("Horizontal Offset changed: clean the cyclic buffer")
+            self.info("Horizontal Offset changed: clean the cyclic buffer")
             self.CyclicBuffer = []
             self._scopeOffsetH.value = value
 

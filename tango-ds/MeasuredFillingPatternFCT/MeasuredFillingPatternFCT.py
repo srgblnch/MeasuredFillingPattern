@@ -97,11 +97,15 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
         self.debug_stream("In %s::addStatusMsg()"%self.get_name())
         msg = "The device is in %s state.\n"%(self.get_state())
         for ilog in self._important_logs:
-            msg = "%s%s\n"%(msg,ilog)
-        status = "%s%s\n"%(msg,current)
+            if len(ilog) > 0:
+                msg = "%s%s\n"%(msg,ilog)
+        if len(current) > 0:
+            status = "%s%s"%(msg,current)
+        else:
+            status = msg[:-1]
         self.set_status(status)
         self.push_change_event('Status',status)
-        self.info_stream("Status change to %s"%(status))
+        self.info_stream("Status change to %r"%(status))
         if important and not current in self._important_logs:
             self._important_logs.append(current)
 
@@ -227,14 +231,17 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
                             self.fireEventsList(eventList)
                         except Exception,e:
                             self.change_state(PyTango.DevState.FAULT)
-                            self.addStatusMsg("Cannot unsubscribe to the FCT",important=True)
-                            self.debug_stream("Cannot unsubscribe to the FCT due to: %s"%(e))
+                            self.addStatusMsg("Cannot unsubscribe to the FCT",
+                                              important=True)
+                            self.debug_stream("Cannot unsubscribe to the FCT "\
+                                              "due to: %s"%(e))
                 time.sleep(1)
                 #secundary attributes to read periodically and without events
 #                self.readRfAttributes()
 #                self.readScopeAttributes()
             except Exception,e:
-                self.error_stream("In %s::analyzerThread(): Exception: %s"%(self.get_name(),e))
+                self.error_stream("In %s::analyzerThread(): Exception: %s"
+                                  %(self.get_name(),e))
             
     def fireEventsList(self,eventsAttrList):
         #self.debug_stream("In %s::fireEventsList()"%self.get_name())
@@ -242,21 +249,30 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
         timestamp = time.time()
         for attrEvent in eventsAttrList:
             try:
-                self.debug_stream("In %s::fireEventsList() attribute: %s"%(self.get_name(),attrEvent[0]))
-                if attrEvent[0] in ['CyclicBuffer'] and not self.attr_emitCyclicBuffer_read:
-                    self.debug_stream("In %s::fireEventsList() attribute: %s avoided to emit the event duo to flag."%(self.get_name(),attrEvent[0]))
+                self.debug_stream("In %s::fireEventsList() attribute: %s"
+                                  %(self.get_name(),attrEvent[0]))
+                if attrEvent[0] in ['CyclicBuffer'] and \
+                not self.attr_emitCyclicBuffer_read:
+                    self.debug_stream("In %s::fireEventsList() attribute: %s "\
+                                      "avoided to emit the event duo to flag."
+                                      %(self.get_name(),attrEvent[0]))
                 elif len(attrEvent) == 3:#specifies quality
-                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,attrEvent[2])
+                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,
+                                           attrEvent[2])
                 else:
-                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,PyTango.AttrQuality.ATTR_VALID)
+                    self.push_change_event(attrEvent[0],attrEvent[1],timestamp,
+                                           PyTango.AttrQuality.ATTR_VALID)
             except Exception,e:
-                self.error_stream("In %s::fireEventsList() Exception with attribute %s"%(self.get_name(),attrEvent[0]))
-                print e
+                self.error_stream("In %s::fireEventsList() Exception with "\
+                                  "attribute %s: %s"
+                                  %(self.get_name(),attrEvent[0],e))
+                traceback.print_exc()
 
 #    def readRfAttributes(self):
 #        #if more than one, use read attributes
 #        if self._bunchAnalyzer != None:
-#            self._bunchAnalyzer.RfFrequency(PyTango.AttributeProxy(self.RfGeneratorDev+'/Frequency').read().value)
+#            self._bunchAnalyzer.RfFrequency(PyTango.AttributeProxy(\
+#                               self.RfGeneratorDev+'/Frequency').read().value)
 
 #    def readScopeAttributes(self):
 #        if self._bunchAnalyzer != None:
