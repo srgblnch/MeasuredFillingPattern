@@ -136,6 +136,10 @@ class Attribute(object):
                 else:
                     self.warn("%s::PushEvent() %s: value has None type"
                                %(self._name,event.attr_name))
+                    return
+            else:
+                self.warn("%s::PushEvent() received a event = None")
+                return
         except Exception,e:
             self.error("%s::PushEvent() exception %s:"%(self._name,e))
         try:#when there is a callback, it's responsible to store the new value
@@ -313,8 +317,14 @@ class BunchAnalyzer(object):
         return self._delayTick
 
     @DelayTick.setter
-    def DelayTick(self):
-        self._delayTick = value
+    def DelayTick(self,value):
+        try:
+            value = int(value)
+            if self._delayTick != value:
+                self._delayTick = value
+                self.delay()
+        except Exception,e:
+            self.error("Exception setting the timming delay: %s"%(e))
 
     #----##Scope
     @property
@@ -674,10 +684,10 @@ class BunchAnalyzer(object):
                                                        self._timingoutput)
         pulse_params = [int(i) for i in pulse_params]
         if (pulse_params[1] != self._delayTick):
-            pulse_params = self._timingProxy.command_inout("GetPulseParams",
-                                                           self._timingoutput)
-            #command returns numpy array
-            pulse_params = [int(i) for i in pulse_params]
+#            pulse_params = self._timingProxy.command_inout("GetPulseParams",
+#                                                           self._timingoutput)
+#            #command returns numpy array
+#            pulse_params = [int(i) for i in pulse_params]
             pulse_params[1] = self._delayTick
             pulse_params = [self._timingoutput] + pulse_params
             self._timingProxy.command_inout("SetPulseParams",pulse_params)
