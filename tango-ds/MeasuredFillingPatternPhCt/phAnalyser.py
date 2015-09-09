@@ -376,7 +376,7 @@ class PhCtAnalyzer(object):#(Analyser):
             if (Start + time_win < len(y_data)):
                 for k in range(0, int(time_win)): 
                     time_win_ar.append(y_data[Start+k]) #create the bucket
-                fil_pat.append(max(time_win_ar)) #considering all the photons 
+                fil_pat.append(sum(time_win_ar)) #considering all the photons 
                                                  #in the bucket
             Start = Start + time_win #switch to the following bucket
         #Impose a threshold (Not sure if needed)
