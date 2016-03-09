@@ -172,6 +172,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
             self._bunchAnalyzer = PhCtAnalyzer(str(self.PhCtDev),
                                                dcctDev=self.dcctDev,
                                                dcctAttr=self.dcctAttr,
+                                               threshold=
+                                               self.attr_Threshold_expert_read,
                                                nAcquisitions=
                                                self.attr_nAcquisitions_read,
                                                parent=self)

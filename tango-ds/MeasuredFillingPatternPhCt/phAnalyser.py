@@ -655,7 +655,7 @@ class PhCtAnalyzer(object):#(Analyser):
         if self._parent:
             self._parent.change_state(PyTango.DevState.STANDBY)
             if msg:
-                self._parent.addStatusMsg("Waiting for %s" % (msg))
+                self._parent.addStatusMsg("Waiting due to %r" % (msg))
             else:
                 self._parent.addStatusMsg("Waiting...")
 
