@@ -103,7 +103,7 @@ class PhCtAnalyzer(object):#(Analyser):
     def __init__(self,PhCtDevName,
                  histogramAttr="histogram",resolutionAttr="resolution",
                  dcctDev='SR/DI/DCCT',dcctAttr='AverageCurrent',
-                 BucketLenght=2*1e-9,threshold=1,
+                 BucketLenght=2*1e-9,threshold=1,nAcquisitions=30,
                  parent=None):
         super(PhCtAnalyzer,self).__init__()
         self._parent = parent#for the logging
@@ -112,7 +112,9 @@ class PhCtAnalyzer(object):#(Analyser):
         self._PhCtDevName = None
         self._PhCtDevProxy = None
         self._HistogramAttr = None
-        self._Histogram = []
+        self._Histogram = None
+        self._nAcquisitions = nAcquisitions
+        self._cyclicBuffer = None
         self._resolutionAttr = None
         self._dcctDev = None
         self._dcctAttr = None
@@ -186,18 +188,38 @@ class PhCtAnalyzer(object):#(Analyser):
         self._HistogramAttr = value
 
     @property
+    def nAcquisitions(self):
+        return self._nAcquisitions
+    
+    @nAcquisitions.setter
+    def nAcquisitions(self,value):
+        self._nAcquisitions = value
+
+    @property
     def Histogram(self):
 #        fullAttrName = self._PhCtDevName+'/'+self._HistogramAttr
 #        return taurus.Attribute(fullAttrName).read().value
         return self._Histogram
-    
+
     @Histogram.setter
     def Histogram(self,value):
-        self._Histogram = value
-        
-    @property
-    def InputSignal(self):
-        return self._Histogram
+        if self._cyclicBuffer == None:
+            self._cyclicBuffer = array([value])
+            self.debug("Collected a first array in the cyclic buffer (%s)"
+                       % (self._cyclicBuffer.shape))
+        else:
+            self._cyclicBuffer = concatenate((self._cyclicBuffer,
+                                              array([value])))
+            self.debug("Concatenated another array (%s)" 
+                       % (self._cyclicBuffer.shape))
+        while self._cyclicBuffer.shape[0] > self.nAcquisitions:
+            self._cyclicBuffer = delete(self._cyclicBuffer,(0),axis=0)
+        self.debug("Cyclic buffer shape %s" % (self._cyclicBuffer.shape))
+        self._Histogram = self._cyclicBuffer.mean(axis=0)
+
+#     @property
+#     def InputSignal(self):
+#         return self._Histogram
     
     @property
     def resolutionAttr(self):
@@ -319,6 +341,7 @@ class PhCtAnalyzer(object):#(Analyser):
             if self.isRunning():
                 self.emit_zeros()
                 self.setStandby("Beam current")
+                self._cyclicBuffer = None
             return False
 
     def calculateMeasurements(self):
