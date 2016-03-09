@@ -206,15 +206,15 @@ class PhCtAnalyzer(object):#(Analyser):
         if self._cyclicBuffer == None:
             self._cyclicBuffer = array([value])
             self.debug("Collected a first array in the cyclic buffer (%s)"
-                       % (self._cyclicBuffer.shape))
+                       % (str(self._cyclicBuffer.shape)))
         else:
             self._cyclicBuffer = concatenate((self._cyclicBuffer,
                                               array([value])))
             self.debug("Concatenated another array (%s)" 
-                       % (self._cyclicBuffer.shape))
+                       % (str(self._cyclicBuffer.shape)))
         while self._cyclicBuffer.shape[0] > self.nAcquisitions:
             self._cyclicBuffer = delete(self._cyclicBuffer,(0),axis=0)
-        self.debug("Cyclic buffer shape %s" % (self._cyclicBuffer.shape))
+        self.debug("Cyclic buffer shape %s" % (str(self._cyclicBuffer.shape)))
         self._Histogram = self._cyclicBuffer.mean(axis=0)
 
 #     @property
@@ -334,7 +334,7 @@ class PhCtAnalyzer(object):#(Analyser):
             traceback.print_exc()
 
     def isCurrentOk(self):
-        if self.Current() > 0.0:
+        if self.Current > 0.0:
             return True
         else:
             #when there is no beam, no calculation to be made
