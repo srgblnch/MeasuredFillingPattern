@@ -286,6 +286,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.attr_nBunches_read = 0
         self.attr_SpuriousBunches_read = 0
         self.attr_FilledBunches_read = 0
+        self.attr_nAcquisitions_read = 0
         self.attr_BunchIntensity_read = [0.0]
         self.attr_InputSignal_read = [0.0]
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.init_device) ENABLED START -----#
@@ -343,11 +344,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
     def is_Threshold_allowed(self, attr):
         self.debug_stream("In is_Threshold_allowed()")
-        if attr==PyTango.AttReqType.READ_REQ:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
-        else:
-            state_ok = not(self.get_state() in [])
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_Threshold_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_Threshold_allowed
@@ -381,12 +379,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
     def is_Threshold_expert_allowed(self, attr):
         self.debug_stream("In is_Threshold_expert_allowed()")
-        if attr==PyTango.AttReqType.READ_REQ:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
-        else:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_Threshold_expert_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_Threshold_expert_allowed
@@ -404,11 +398,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
     def is_resultingFrequency_allowed(self, attr):
         self.debug_stream("In is_resultingFrequency_allowed()")
-        if attr==PyTango.AttReqType.READ_REQ:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
-        else:
-            state_ok = not(self.get_state() in [])
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_resultingFrequency_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_resultingFrequency_allowed
@@ -428,11 +419,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
     def is_nBunches_allowed(self, attr):
         self.debug_stream("In is_nBunches_allowed()")
-        if attr==PyTango.AttReqType.READ_REQ:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
-        else:
-            state_ok = not(self.get_state() in [])
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_nBunches_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_nBunches_allowed
@@ -451,11 +439,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
     def is_SpuriousBunches_allowed(self, attr):
         self.debug_stream("In is_SpuriousBunches_allowed()")
-        if attr==PyTango.AttReqType.READ_REQ:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
-        else:
-            state_ok = not(self.get_state() in [])
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_SpuriousBunches_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_SpuriousBunches_allowed
@@ -474,15 +459,38 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
     def is_FilledBunches_allowed(self, attr):
         self.debug_stream("In is_FilledBunches_allowed()")
-        if attr==PyTango.AttReqType.READ_REQ:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
-        else:
-            state_ok = not(self.get_state() in [])
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_FilledBunches_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_FilledBunches_allowed
         return state_ok
+        
+    def read_nAcquisitions(self, attr):
+        self.debug_stream("In read_nAcquisitions()")
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.nAcquisitions_read) ENABLED START -----#
+        try:
+            self.attr_nAcquisitions_read = self._bunchAnalyzer.nAcquisitions
+        except:
+            self.warn_stream("In read_nAcquisitions() cannot get from BunchAnalyzer()")
+        attr.set_value(self.attr_nAcquisitions_read)
+        
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.nAcquisitions_read
+        
+    def write_nAcquisitions(self, attr):
+        self.debug_stream("In write_nAcquisitions()")
+        data=attr.get_write_value()
+        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.nAcquisitions_write) ENABLED START -----#
+        self.attr_nAcquisitions_read = int(data)
+        self.attr_nAcquisitions_write = self.attr_nAcquisitions_read
+        try:
+            self._bunchAnalyzer.nAcquisitions = self.attr_nAcquisitions_write
+            self.attr_nAcquisitions_read = self._bunchAnalyzer.nAcquisitions
+        except:
+            self.warn_stream("In write_nAcquisitions() cannot set in "\
+                             "BunchAnalyzer()")
+        self.fireEventsList([['nAcquisitions',self.attr_nAcquisitions_read]])
+        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.nAcquisitions_write
         
     def read_BunchIntensity(self, attr):
         self.debug_stream("In read_BunchIntensity()")
@@ -497,11 +505,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
     def is_BunchIntensity_allowed(self, attr):
         self.debug_stream("In is_BunchIntensity_allowed()")
-        if attr==PyTango.AttReqType.READ_REQ:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
-        else:
-            state_ok = not(self.get_state() in [])
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_BunchIntensity_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_BunchIntensity_allowed
@@ -521,11 +526,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         
     def is_InputSignal_allowed(self, attr):
         self.debug_stream("In is_InputSignal_allowed()")
-        if attr==PyTango.AttReqType.READ_REQ:
-            state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
-                PyTango.DevState.INIT])
-        else:
-            state_ok = not(self.get_state() in [])
+        state_ok = not(self.get_state() in [PyTango.DevState.FAULT,
+            PyTango.DevState.INIT])
         #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.is_InputSignal_allowed) ENABLED START -----#
         
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.is_InputSignal_allowed
@@ -625,11 +627,6 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.Exec
         return argout
         
-
-    #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.programmer_methods) ENABLED START -----#
-    def initialize_dynamic_attributes(self):
-        pass
-    #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.programmer_methods
 
 class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
     #--------- Add you global class variables here --------------------------
@@ -759,6 +756,15 @@ class MeasuredFillingPatternPhCtClass(PyTango.DeviceClass):
             {
                 'label': "Filled Bunches",
             } ],
+        'nAcquisitions':
+            [[PyTango.DevUShort,
+            PyTango.SCALAR,
+            PyTango.READ_WRITE],
+            {
+                'label': "Number of acquisitions",
+                'description': "Number of elements in the cyclic buffer from where the calculation takes the data.",
+                'Memorized':"true"
+            } ],
         'BunchIntensity':
             [[PyTango.DevDouble,
             PyTango.SPECTRUM,
@@ -774,9 +780,6 @@ def main():
     try:
         py = PyTango.Util(sys.argv)
         py.add_class(MeasuredFillingPatternPhCtClass,MeasuredFillingPatternPhCt,'MeasuredFillingPatternPhCt')
-        #----- PROTECTED REGION ID(MeasuredFillingPatternPhCt.add_classes) ENABLED START -----#
-        
-        #----- PROTECTED REGION END -----#	//	MeasuredFillingPatternPhCt.add_classes
 
         U = PyTango.Util.instance()
         U.server_init()
