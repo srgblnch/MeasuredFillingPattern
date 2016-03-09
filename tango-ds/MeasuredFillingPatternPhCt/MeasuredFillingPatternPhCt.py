@@ -172,6 +172,8 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
             self._bunchAnalyzer = PhCtAnalyzer(str(self.PhCtDev),
                                                dcctDev=self.dcctDev,
                                                dcctAttr=self.dcctAttr,
+                                               nAcquisitions=
+                                               self.attr_nAcquisitions_read,
                                                parent=self)
             self.debug_stream("Build PhCtAnalyzer made (%s)"
                               %(self._bunchAnalyzer.PhCtDevName))
@@ -310,6 +312,7 @@ class MeasuredFillingPatternPhCt (PyTango.Device_4Impl):
         self.set_change_event('FilledBunches',True,False)
         self.set_change_event('SpuriousBunches',True,False)
         self.set_change_event('nBunches',True,False)
+        self.set_change_event('nAcquisitions',True,False)
         #prepare the analyzer thread
         self.change_state(PyTango.DevState.OFF)
         if self.createThread():

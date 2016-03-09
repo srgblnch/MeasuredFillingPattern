@@ -196,9 +196,13 @@ class PhCtAnalyzer(object):#(Analyser):
         self._nAcquisitions = value
 
     @property
+    def lenCyclicBuffer(self):
+        if self._cyclicBuffer is not None:
+            return self._cyclicBuffer.shape[0]
+        return 0
+
+    @property
     def Histogram(self):
-#        fullAttrName = self._PhCtDevName+'/'+self._HistogramAttr
-#        return taurus.Attribute(fullAttrName).read().value
         return self._Histogram
 
     @Histogram.setter
@@ -212,7 +216,7 @@ class PhCtAnalyzer(object):#(Analyser):
                                               array([value])))
             self.debug("Concatenated another array (%s)" 
                        % (str(self._cyclicBuffer.shape)))
-        while self._cyclicBuffer.shape[0] > self.nAcquisitions:
+        while self.lenCyclicBuffer > self.nAcquisitions:
             self._cyclicBuffer = delete(self._cyclicBuffer,(0),axis=0)
         self.debug("Cyclic buffer shape %s" % (str(self._cyclicBuffer.shape)))
         self._Histogram = self._cyclicBuffer.mean(axis=0)
@@ -231,8 +235,11 @@ class PhCtAnalyzer(object):#(Analyser):
 
     @property
     def Resolution(self):
-        fullAttrName = "%s/%s"%(self._PhCtDevName,self._resolutionAttr)
-        return taurus.Attribute(fullAttrName).read().value
+        try:
+            fullAttrName = "%s/%s"%(self._PhCtDevName,self._resolutionAttr)
+            return taurus.Attribute(fullAttrName).read().value
+        except:
+            return None
 
     @property
     def dcctDev(self):
@@ -252,8 +259,11 @@ class PhCtAnalyzer(object):#(Analyser):
 
     @property
     def Current(self):
-        fullAttrName = self._dcctDev+'/'+self._dcctAttr
-        return taurus.Attribute(fullAttrName).read().value
+        try:
+            fullAttrName = self._dcctDev+'/'+self._dcctAttr
+            return taurus.Attribute(fullAttrName).read().value
+        except:
+            return 0.0
 
     @property
     def BucketLenght(self):
@@ -306,8 +316,12 @@ class PhCtAnalyzer(object):#(Analyser):
                                 [PyTango.AttrQuality.ATTR_VALID,
                                  PyTango.AttrQuality.ATTR_CHANGING]:
                             if self.isCurrentOk():
-                                if not self.isRunning():
-                                    self.setRunning()
+                                if self.areNAcquisitions():
+                                    if not self.isRunning():
+                                        self.setRunning()
+                                else:
+                                    if not self.isStandby():
+                                        self.setStandby("Collecting samples")
                                 self.debug("Received valid data! (%d,%s)"
                                            %(len(event.attr_value.value),
                                                  event.attr_value.quality))
@@ -332,6 +346,11 @@ class PhCtAnalyzer(object):#(Analyser):
             self.error(msg)
             self.setFault(msg)
             traceback.print_exc()
+
+    def areNAcquisitions(self):
+        if self.lenCyclicBuffer < self.nAcquisitions:
+            return False
+        return True
 
     def isCurrentOk(self):
         if self.Current > 0.0:
@@ -362,27 +381,36 @@ class PhCtAnalyzer(object):#(Analyser):
     def emit_results(self):
         if self._parent:
             nBunches = self._filledBunches-self._spuriousBunches
-            self._parent.fireEventsList([['BunchIntensity',
-                                          self.BunchIntensity,
-                                          self.BunchIntensityQuality],
-                                         ['InputSignal',
-                                          self.Histogram,
-                                          self.BunchIntensityQuality],
-                                         ['resultingFrequency',
-                                          self._resultingFrequency],
-                                         ['FilledBunches',self._filledBunches],
-                                         ['SpuriousBunches',
-                                          self._spuriousBunches],
-                                         ['nBunches',nBunches]])
+            events2emit = []
+            events2emit.append(['BunchIntensity',self.BunchIntensity,
+                                self.BunchIntensityQuality])
+            events2emit.append(['InputSignal',self.Histogram,
+                                self.BunchIntensityQuality])
+            events2emit.append(['resultingFrequency',self._resultingFrequency])
+            events2emit.append(['FilledBunches',self._filledBunches])
+            events2emit.append(['SpuriousBunches',self._spuriousBunches])
+            events2emit.append(['nBunches',nBunches])
+            if self.areNAcquisitions():
+                nAcquisitionsQuality = PyTango.AttrQuality.ATTR_VALID
+            else:
+                nAcquisitionsQuality = PyTango.AttrQuality.ATTR_CHANGING
+            events2emit.append(['nAcquisitions',self.lenCyclicBuffer,
+                                nAcquisitionsQuality])
+            
+            self._parent.fireEventsList(events2emit)
             self._parent.attr_BunchIntensity_read = self.BunchIntensity
 
     def emit_zeros(self):
         if self._parent:
-            self._parent.fireEventsList([['BunchIntensity',array([0]*448)],
-                                         ['resultingFrequency',0.0],
-                                         ['FilledBunches',0],
-                                         ['SpuriousBunches',0],
-                                         ['nBunches',0]])
+            events2emit = []
+            events2emit.append(['BunchIntensity',array([0]*448)])
+            events2emit.append(['resultingFrequency',0.0])
+            events2emit.append(['FilledBunches',0])
+            events2emit.append(['SpuriousBunches',0])
+            events2emit.append(['nBunches',0])
+            events2emit.append(['nAcquisitions',0])
+            
+            self._parent.fireEventsList(events2emit)
 
     ####
     # original methods of the ph analysis
