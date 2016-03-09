@@ -283,19 +283,18 @@ class PhCtAnalyzer(object):#(Analyser):
                         if event.attr_value.quality in \
                                 [PyTango.AttrQuality.ATTR_VALID,
                                  PyTango.AttrQuality.ATTR_CHANGING]:
-                            if self.isStandby():
-                                return
-                            if not self.isRunning():
-                                self.setRunning()
-                            self.debug("Received valid data! (%d,%s)"
-                                       %(len(event.attr_value.value),
-                                             event.attr_value.quality))
-                            self.Histogram = event.attr_value.value
-                            self._bunchIntensityQuality = \
-                            event.attr_value.quality
-                            self.calculateMeasurements()
-                            self.calculateResultingFrequency()
-                            self.emit_results()
+                            if self.isCurrentOk():
+                                if not self.isRunning():
+                                    self.setRunning()
+                                self.debug("Received valid data! (%d,%s)"
+                                           %(len(event.attr_value.value),
+                                                 event.attr_value.quality))
+                                self.Histogram = event.attr_value.value
+                                self._bunchIntensityQuality = \
+                                event.attr_value.quality
+                                self.calculateMeasurements()
+                                self.calculateResultingFrequency()
+                                self.emit_results()
                         else:
                             self.debug("Data is %s"%(event.attr_value.quality))
                     else:
@@ -311,6 +310,16 @@ class PhCtAnalyzer(object):#(Analyser):
             self.error(msg)
             self.setFault(msg)
             traceback.print_exc()
+
+    def isCurrentOk(self):
+        if self.Current() > 0.0:
+            return True
+        else:
+            #when there is no beam, no calculation to be made
+            if self.isRunning():
+                self.emit_zeros()
+                self.setStandby("Beam current")
+            return False
 
     def calculateMeasurements(self):
         bucket,self._bunchIntensity = self.Fil_Pat_Calc(self.Histogram)
@@ -343,6 +352,14 @@ class PhCtAnalyzer(object):#(Analyser):
                                           self._spuriousBunches],
                                          ['nBunches',nBunches]])
             self._parent.attr_BunchIntensity_read = self.BunchIntensity
+
+    def emit_zeros(self):
+        if self._parent:
+            self._parent.fireEventsList([['BunchIntensity',array([0]*448)],
+                                         ['resultingFrequency',0.0],
+                                         ['FilledBunches',0],
+                                         ['SpuriousBunches',0],
+                                         ['nBunches',0]])
 
     ####
     # original methods of the ph analysis
@@ -582,6 +599,14 @@ class PhCtAnalyzer(object):#(Analyser):
         if self._parent:
             return self._parent.get_state() == PyTango.DevState.RUNNING
         return False
+
+    def setStandby(self,msg=None):
+        if self._parent:
+            self._parent.change_state(PyTango.DevState.STANDBY)
+            if msg:
+                self._parent.addStatusMsg("Waiting for %s" % (msg))
+            else:
+                self._parent.addStatusMsg("Waiting...")
 
     def setRunning(self):
         if self._parent:

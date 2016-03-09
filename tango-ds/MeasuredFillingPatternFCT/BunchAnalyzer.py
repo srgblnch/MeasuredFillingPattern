@@ -556,6 +556,8 @@ class BunchAnalyzer(object):
                     return
         except Exception,e:
             self.error("PushEvent() exception %s:"%(e))
+        if not self.isCurrentOk():
+            return
         #timestamps when this starts
         t0 = time.time()
         eventList = []
@@ -675,6 +677,24 @@ class BunchAnalyzer(object):
         except Exception,e:
             self.error("Exception during calculation: %s"%(e))
             #FIXME: should be set the status to fault?
+
+    def isCurrentOk(self):
+        if self._currentAttr.value > 0.0:
+            return True
+        else:
+            #when there is no beam, no calculation to be made
+            if self.isRunning():
+                self.emit_zeros()
+                self.setStandby("Beam current")
+            return False
+
+    def emit_zeros(self):
+        if self._parent:
+            self._parent.fireEventsList([['BunchIntensity',array([0]*448)],
+                                         ['resultingFrequency',0.0],
+                                         ['FilledBunches',0],
+                                         ['SpuriousBunches',0],
+                                         ['nBunches',0]])
 
     def calculateResultingFrequency(self):
         samples = len(self._tf)
@@ -910,6 +930,40 @@ class BunchAnalyzer(object):
 
     # done original methods of the bunch analysis
     ####
+
+    ######
+    #----# auxiliary methods to manage states
+    def isStandby(self):
+        if self._parent:
+            return self._parent.get_state() == PyTango.DevState.STANDBY
+        return False
+    
+    def isRunning(self):
+        if self._parent:
+            return self._parent.get_state() == PyTango.DevState.RUNNING
+        return False
+
+    def setStandby(self,msg=None):
+        if self._parent:
+            self._parent.change_state(PyTango.DevState.STANDBY)
+            if msg:
+                self._parent.addStatusMsg("Waiting for %s" % (msg))
+            else:
+                self._parent.addStatusMsg("Waiting...")
+
+    def setRunning(self):
+        if self._parent:
+            self._parent.change_state(PyTango.DevState.RUNNING)
+            self._parent.addStatusMsg("Receiving events")
+
+    def setFault(self,msg):
+        if self._parent:
+            self._parent.change_state(PyTango.DevState.FAULT)
+            self._parent.addStatusMsg(msg)
+
+    #---- auxiliary methods to manage states
+    ######
+
 
 # Done BunchAnalyser Class
 ####
