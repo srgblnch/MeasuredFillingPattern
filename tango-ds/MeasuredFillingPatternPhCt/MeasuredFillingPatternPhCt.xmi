@@ -185,6 +185,6 @@
     <states name="INIT" description="Just when the device is launched until its build procedure is done">
       <status abstract="false" inherited="false" concrete="true" concreteHere="true"/>
     </states>
-    <preferences docHome="./doc_html" makefileHome="/siciliarep/build/lib/tango/tango.ct32suse11/share/pogo/preferences"/>
+    <preferences docHome="./doc_html" makefileHome="$(TANGO_HOME)"/>
   </classes>
 </pogoDsl:PogoSystem>
