@@ -156,15 +156,15 @@ class StreamingPlot(TaurusPlot):
 
 
 class BunchIntensityPlot(StreamingPlot):
-   def __init__(self, parent=None, designMode=False):
-       StreamingPlot.__init__(self, parent, designMode)
-       self.setObjectName("BunchIntensityPlot")
+    def __init__(self, parent=None, designMode=False):
+        StreamingPlot.__init__(self, parent, designMode)
+        self.setObjectName("BunchIntensityPlot")
 
 
 class InputSignalPlot(StreamingPlot):
-   def __init__(self, parent=None, designMode=False):
-       StreamingPlot.__init__(self, parent, designMode)
-       self.setObjectName("InputSignalPlot")
+    def __init__(self, parent=None, designMode=False):
+        StreamingPlot.__init__(self, parent, designMode)
+        self.setObjectName("InputSignalPlot")
 
 
 class StreamingCurve(TaurusCurve):

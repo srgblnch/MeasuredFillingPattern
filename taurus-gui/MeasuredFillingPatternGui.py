@@ -113,8 +113,9 @@ class MainWindow(TaurusGui):
             else:
                 widget = None#FIXME
             self._components[panel] = Component(self,name=panel,
-                                            widget=widget,attrNames=attrNames,
-                                            haveCommands=haveCommands)
+                                                widget=widget,
+                                                attrNames=attrNames,
+                                                haveCommands=haveCommands)
         self._selectorComponent()
 
     def prepareJorgsBar(self):
