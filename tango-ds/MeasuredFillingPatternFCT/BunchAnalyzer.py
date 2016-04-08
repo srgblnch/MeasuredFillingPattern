@@ -450,7 +450,7 @@ class BunchAnalyzer(object):
 
     @property
     def CyclicBuffer(self):
-        return self._cyclicBuffer
+        return self._cyclicBuffer[:]
 
     @CyclicBuffer.setter
     def CyclicBuffer(self,value):
@@ -465,6 +465,22 @@ class BunchAnalyzer(object):
         if self._cyclicBuffer is not None:
             return len(self._cyclicBuffer)
         return 0
+
+    def CyclicBufferReset(self):
+        self._cyclicBuffer = []
+        self._cyclicBufferTracer("buffer re-initialised. Input "\
+                                 "array length change")
+
+    def CyclicBufferAppend(self,lst):
+        self._cyclicBuffer.append(lst)
+
+    def CyclicBufferCycle(self):
+        if self.lenCyclicBuffer > self.nAcquisitions:
+            self.info("Cyclic buffer needs a decrement of %d elements"
+                      %(self.lenCyclicBuffer - self.nAcquisitions))
+        while self.lenCyclicBuffer > self.nAcquisitions:
+            self._cyclicBuffer.pop(0)
+        # ?? self._cyclicBuffer = self._cyclicBuffer[-self.nAcquisitions]
 
     @property
     def StartingPoint(self):
@@ -492,8 +508,8 @@ class BunchAnalyzer(object):
     
     @property
     def InputSignal(self):
-        return self._cyclicBuffer[-1:][0]
-        #equivalent to self._cyclicBuffer[len(self._cyclicBuffer)-1]
+        return self.CyclicBuffer[-1:][0]
+        #equivalent to self.CyclicBuffer[self.lenCyclicBuffer-1]
 
     # done auxiliary setters and getters to modify the behaviour from the device server
     ####
@@ -564,19 +580,16 @@ class BunchAnalyzer(object):
             self.error("PushEvent() exception %s:"%(e))
         if not self.isCurrentOk():
             return
-        if len(self._cyclicBuffer) > 0:
-            #print type(self._cyclicBuffer[0])
-            if len(self._cyclicBuffer[0]) != len(event.attr_value.value):
-                self._cyclicBuffer = []
-                self._cyclicBufferTracer("buffer re-initialised. Input "\
-                                         "array length change")
+        #if the size of the elements in the buffer have changed, restart them
+        if self.lenCyclicBuffer > 0:
+            if len(self.CyclicBuffer[0]) != len(event.attr_value.value):
+                self.CyclicBufferReset()
         #populate the cyclicBuffer
-        self._cyclicBuffer.append(event.attr_value.value)
+        self.CyclicBufferAppend(event.attr_value.value)
         #timestamps when this starts
         t0 = time.time()
         try:
             self.precalculation()
-            #time stamps when this finish to know: how long it has take,
             self.calculateMeasurements()
             tf = time.time()
             self._t0.append(t0)
@@ -588,52 +601,44 @@ class BunchAnalyzer(object):
             #use the time to calculate the output frequency
             self.calculateResultingFrequency()
             self.emit_results()
-        except Exception,e:
+        except Exception as e:
             self.error("Exception during calculation: %s"%(e))
             #FIXME: should be set the status to fault?
 
     def precalculation(self):
         eventList = []
-        #if the size of the elements in the buffer have changed, restart them
-        
         #state changes between STANDBY<->ON when the len(cyclicBuffer)<nAcquitions
-        bufLen = len(self._cyclicBuffer)
+        bufLen = self.lenCyclicBuffer
         if bufLen < self.nAcquisitions:
             if not self._parent.get_state() in [PyTango.DevState.STANDBY,
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.STANDBY)
             if bufLen >= self.__alarm_cyclicBuf:
-                eventList.append(['nAcquisitions',len(self._cyclicBuffer),
+                eventList.append(['nAcquisitions',self.lenCyclicBuffer,
                                   PyTango.AttrQuality.ATTR_ALARM])
             else:
-                eventList.append(['nAcquisitions',len(self._cyclicBuffer),
+                eventList.append(['nAcquisitions',self.lenCyclicBuffer,
                                   PyTango.AttrQuality.ATTR_CHANGING])
         else:
-            #FIXME: Replace the while by an if
-            while len(self._cyclicBuffer) > self.nAcquisitions:
-                self._cyclicBuffer.pop(0)
-#             if len(self._cyclicBuffer) > self.nAcquisitions:
-#                 self._cyclicBufferTracer("buffer remove first %d elements"
-#                              %(len(self._cyclicBuffer)-self.nAcquisitions))
-#                 self._cyclicBuffer = self._cyclicBuffer[-self.nAcquisitions]
+            self.CyclicBufferCycle()
             if not self._parent.get_state() in [PyTango.DevState.ON,
                                                 PyTango.DevState.ALARM]:
                 self._parent.change_state(PyTango.DevState.ON)
-            if len(self._cyclicBuffer) >= self.__alarm_cyclicBuf:
-                eventList.append(['nAcquisitions',len(self._cyclicBuffer),
+            if self.lenCyclicBuffer >= self.__alarm_cyclicBuf:
+                eventList.append(['nAcquisitions',self.lenCyclicBuffer,
                                   PyTango.AttrQuality.ATTR_ALARM])
             else:
-                eventList.append(['nAcquisitions',len(self._cyclicBuffer),
+                eventList.append(['nAcquisitions',self.lenCyclicBuffer,
                                   PyTango.AttrQuality.ATTR_VALID])
-        eventList.append(['CyclicBuffer',self._cyclicBuffer,
+        eventList.append(['CyclicBuffer',self.CyclicBuffer,
                           PyTango.AttrQuality.ATTR_CHANGING])
         self._parent.fireEventsList(eventList)
         #TODO: are there any scope attribute to reread when a new waveform is received?
         #      or any that must be reread after N waveforms received
         #with the current values on the cyclic buffer, analyze it.
         #FIXME: why call delay when we are maintaining the delayTick
-        self.debug("Time delay: %d (DelayTick: %d)"
-                   %(self.delay(),self.DelayTick))
+#         self.debug("Time delay: %d (DelayTick: %d)"
+#                    %(self.delay(),self.DelayTick))
 
     def calculateMeasurements(self):
         #Usefull variables
@@ -654,27 +659,36 @@ class BunchAnalyzer(object):
         #    ScaleH = 100 ns
         start = int(self.StartingPoint)
         #NOT WORKING IF THE BEAM IS UNSTABLE
-        #if len(self._cyclicBuffer)==0: return
-        self.debug("cyclic buffer size: %d"%(len(self._cyclicBuffer)))
-        if len(self._cyclicBuffer) == 0:
+        #if self.lenCyclicBuffer==0: return
+        self.debug("cyclic buffer size: %d"%(self.lenCyclicBuffer))
+        if self.lenCyclicBuffer == 0:
             self.warn("empty buffer")
             return
-        y = array(self._cyclicBuffer[0][0:Tot_Bucket+start+1])
-        for i in range(1,len(self._cyclicBuffer)):
-            y += array(self._cyclicBuffer[i][0:Tot_Bucket+start+1])
-        y = y/(len(self._cyclicBuffer))
+        y = array(self.CyclicBuffer[0][0:Tot_Bucket+start+1])
+        for i in range(1,self.lenCyclicBuffer):
+            y += array(self.CyclicBuffer[i][0:Tot_Bucket+start+1])
+        y = y/(self.lenCyclicBuffer)
         x = range(len(y))
-        # the calculation itself
-        self._yFiltered = self.bandPassFilter(SampRate, time_win, start,
-                                              CutOffFreq, x, y, secperbin)
-        p2p = self.peakToPeak(time_win, x)
-        current = self._currentAttr.value
-        self._bunchIntensity = ((p2p/sum(p2p))*current)#/(nBunches)
-        self.debug("len(_bunchIntensity) = %d"%(len(self._bunchIntensity)))
-        self._filledBunches = self.bunchCount(self._bunchIntensity)
-        self.debug("FilledBunches = %d"%self._filledBunches)
-        self._spuriousBunches = self.spuriousBunches(self._bunchIntensity)
-        self.debug("SpuriousBunches = %d"%self._spuriousBunches)
+        #the calculation itself
+        try:
+#            self.debug("input to bandPassFilter = %s"%(y.tolist()))
+            self._yFiltered = self.bandPassFilter(SampRate, time_win, start,
+                                                  CutOffFreq, x, y, secperbin)
+            #print(time_win)
+            p2p = self.peakToPeak(time_win, x)
+            #FIXME: better to subscribe
+            current = self._currentAttr.value
+            #FIXME: use the new attr 
+            nBunches = self._filledBunches-self._spuriousBunches
+            self._bunchIntensity = ((p2p/sum(p2p))*current)#/(nBunches)
+            self.debug("len(_bunchIntensity) = %d"%(len(self._bunchIntensity)))
+            self._filledBunches = self.bunchCount(self._bunchIntensity)
+            self.debug("FilledBunches = %d"%self._filledBunches)
+            self._spuriousBunches = self.spuriousBunches(self._bunchIntensity)
+            self.debug("SpuriousBunches = %d"%self._spuriousBunches)
+        except Exception,e:
+            self.error("Exception during calculation: %s"%(e))
+            #FIXME: should be set the status to fault?
 
     def calculateResultingFrequency(self):
         samples = len(self._tf)
@@ -683,54 +697,44 @@ class BunchAnalyzer(object):
             lapses.append(self._tf[i+1]-self._tf[i])
         self._resultingFrequency = 1/average(lapses)
 
-    def areNAcquisitions(self):
-        if self.lenCyclicBuffer < self.nAcquisitions:
-            return False
-        return True
-
     def isCurrentOk(self):
         if self._currentAttr.value > 0.0:
             return True
         else:
             #when there is no beam, no calculation to be made
-            if not self.isStandby():
+            if not self.isStandby():  # self.isRunning():
                 self.emit_zeros()
                 self.setStandby("Beam current")
             return False
 
     def emit_results(self):
+        #emit output events
         if self._parent:
-            nBunches = self._filledBunches-self._spuriousBunches
             events2emit = []
-            events2emit.append(['BunchIntensity',self.BunchIntensity])
-            events2emit.append(['InputSignal',self.InputSignal])
-            events2emit.append(['resultingFrequency',self._resultingFrequency])
+            events2emit.append(['BunchIntensity',self._bunchIntensity])
             events2emit.append(['FilledBunches',self._filledBunches])
             events2emit.append(['SpuriousBunches',self._spuriousBunches])
             events2emit.append(['nBunches',nBunches])
-            if self.areNAcquisitions():
-                nAcquisitionsQuality = PyTango.AttrQuality.ATTR_VALID
-            else:
-                nAcquisitionsQuality = PyTango.AttrQuality.ATTR_CHANGING
-            events2emit.append(['nAcquisitions',self.lenCyclicBuffer,
-                                nAcquisitionsQuality])
-            
+            self.debug("len InputSignal = %d"%(len(self.InputSignal)))
+            events2emit.append(['InputSignal',self.InputSignal])
+            events2emit.append(['resultingFrequency',self._resultingFrequency])
             self._parent.fireEventsList(events2emit)
-            self._parent.attr_BunchIntensity_read = self.BunchIntensity
 
     def emit_zeros(self):
         if self._parent:
-            self._bunchIntensity = array([0]*448)
-            events2emit = []
-            events2emit.append(['BunchIntensity',self._bunchIntensity])
-            events2emit.append(['resultingFrequency',0.0])
-            events2emit.append(['FilledBunches',0])
-            events2emit.append(['SpuriousBunches',0])
-            events2emit.append(['nBunches',0])
-            events2emit.append(['nAcquisitions',0])
-            
-            self._parent.fireEventsList(events2emit)
-            self._parent.attr_BunchIntensity_read = self.BunchIntensity
+            self._parent.fireEventsList([['BunchIntensity',array([0]*448)],
+                                         ['resultingFrequency',0.0],
+                                         ['FilledBunches',0],
+                                         ['SpuriousBunches',0],
+                                         ['nBunches',0]])
+
+    def calculateResultingFrequency(self):
+        samples = len(self._tf)
+        lapses = []
+        for i in range(samples-1):
+            lapses.append(self._tf[i+1]-self._tf[i])
+        self._resultingFrequency = 1/average(lapses)
+
     # done auxiliary methods to manage events
     ####
 
@@ -798,7 +802,7 @@ class BunchAnalyzer(object):
             else:
                 if self._parent and \
                    self._parent.get_state() == PyTango.DevState.ALARM:
-                    if len(self._cyclicBuffer) < self.NAcquisitions:
+                    if self.lenCyclicBuffer < self.nAcquisitions:
                         self._parent.change_state(PyTango.DevState.STANDBY)
                     else:
                         self._parent.change_state(PyTango.DevState.ON)
