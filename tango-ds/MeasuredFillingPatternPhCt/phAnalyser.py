@@ -347,6 +347,22 @@ class PhCtAnalyzer(object):#(Analyser):
             self.setFault(msg)
             traceback.print_exc()
 
+    def areNAcquisitions(self):
+        if self.lenCyclicBuffer < self.nAcquisitions:
+            return False
+        return True
+
+    def isCurrentOk(self):
+        if self.Current > 0.0:
+            return True
+        else:
+            #when there is no beam, no calculation to be made
+            if self.isRunning():
+                self.emit_zeros()
+                self.setStandby("Beam current")
+                self._cyclicBuffer = None
+            return False
+
     def calculateMeasurements(self):
         bucket,self._bunchIntensity = self.Fil_Pat_Calc(self.Histogram)
         self.debug("len(_bunchIntensity) = %d"%(len(self._bunchIntensity)))
@@ -411,7 +427,6 @@ class PhCtAnalyzer(object):#(Analyser):
             events2emit.append(['SpuriousBunches',0])
             events2emit.append(['nBunches',0])
             events2emit.append(['nAcquisitions',0])
-            
             self._parent.fireEventsList(events2emit)
             self._parent.attr_BunchIntensity_read = self.BunchIntensity
 
