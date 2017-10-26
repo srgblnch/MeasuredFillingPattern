@@ -1,60 +1,54 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*- 
-
-##############################################################################
-## license : GPLv3+
-##============================================================================
-##
-## File :        widgets/TaurusDevCombo.py
-## 
-## Project :     Widget to select one device from the given device server name
-##
-## $Author :      sblanch$
-##
-## $Revision :    $
-##
-## $Date :        $
-##
-## $HeadUrl :     $
-##============================================================================
-##
-##        (c) - Controls Software Section - Alba synchrotron (cells)
-##############################################################################
-
-#?__docformat__ = 'restructuredtext'
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 3
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, see <http://www.gnu.org/licenses/>
+#
+# ##### END GPL LICENSE BLOCK #####
 
 import sys
-from taurus import Database,Logger
+from taurus import Database, Logger
 from taurus.qt.qtgui.util.ui import UILoadable
-from taurus.qt.qtgui.panel import TaurusWidget
-from taurus.external.qt import Qt,QtGui,QtCore
+from taurus.qt.qtgui.container import TaurusWidget
+from taurus.external.qt import Qt, QtGui, QtCore
 
-####
-#--- Extra furniture for PyQt4.4 & numpy 1.3 backward compatibility
-try:#normal way
-    from taurus.external.qt import Qt,QtGui,QtCore
-except:#backward compatibility to pyqt 4.4.3
-    from taurus.qt import Qt,QtGui
+
+__author__ = "Sergi Blanch-Torne"
+__copyright__ = "Copyright 2014, CELLS / ALBA Synchrotron"
+__license__ = "GPLv3+"
+
 
 class MyQtSignal(Logger):
     '''This class is made to emulate the pyqtSignals for too old pyqt versions.
     '''
-    def __init__(self,name,parent=None):
+    def __init__(self, name, parent=None):
         Logger.__init__(self)
         self._parent = parent
         self._name = name
         self._cb = []
+
     def emit(self):
-        self.info("Signal %r emit (%s)"%(self._name,self._cb))
-        Qt.QObject.emit(self._parent,Qt.SIGNAL(self._name))
-        self.debug("Having callback list of %d elements"%(len(self._cb)))
+        self.info("Signal %r emit (%s)" % (self._name, self._cb))
+        Qt.QObject.emit(self._parent, Qt.SIGNAL(self._name))
+        self.debug("Having callback list of %d elements" % (len(self._cb)))
         for cb in self._cb:
-            self.debug("Calling %r"%(cb))
+            self.debug("Calling %r" % (cb))
             cb()
-    def connect(self,callback):
-        self.error("Trying a connect on MyQtSignal(%s)"%(self._name))
-        #raise Exception("Invalid")
+
+    def connect(self, callback):
+        self.error("Trying a connect on MyQtSignal(%s)" % (self._name))
+        # raise Exception("Invalid")
         self._cb.append(callback)
+
 
 @UILoadable(with_ui='_ui')
 class TaurusDevCombo(TaurusWidget):
@@ -62,15 +56,16 @@ class TaurusDevCombo(TaurusWidget):
         modelChosen = QtCore.pyqtSignal()
     except:
         modelChosen = MyQtSignal('modelChosen')
+
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode=designMode)
         self.loadUi()
         self._selectedDevice = ""
-        if hasattr(self.modelChosen,'_parent'):
+        if hasattr(self.modelChosen, '_parent'):
             self.modelChosen._parent = self
         try:
             self._ui.selectorCombo.currentIndexChanged.connect(self.selection)
-        except Exception,e:
+        except Exception as e:
             self.warning("Using deprecated connect signal")
             Qt.QObject.connect(self._ui.selectorCombo,
                                Qt.SIGNAL('currentIndexChanged(int)'),
@@ -85,50 +80,53 @@ class TaurusDevCombo(TaurusWidget):
         ret['container'] = False
         return ret
 
-    def setModel(self,model):
+    def setModel(self, model):
         self.getDeviceListByDeviceServerName(model)
         self._ui.selectorCombo.addItems(self._deviceNames.keys())
 
-    def getDeviceListByDeviceServerName(self,deviceServerName):
+    def getDeviceListByDeviceServerName(self, deviceServerName):
         db = Database()
         foundInstances = db.getServerNameInstances(deviceServerName)
         self.debug("by %s found %d instances: %s."
-                   %(deviceServerName,len(foundInstances),
-                     ','.join("%s"%instance.name() \
-                              for instance in foundInstances)))
+                   % (deviceServerName, len(foundInstances),
+                      ','.join("%s" % instance.name()
+                               for instance in foundInstances)))
         self._deviceNames = {}
         for instance in foundInstances:
-            for i,devName in enumerate(instance.getDeviceNames()):
+            for i, devName in enumerate(instance.getDeviceNames()):
                 if not devName.startswith('dserver'):
                     self._deviceNames[str(devName)] = \
-                    instance.getClassNames()[i]
+                        instance.getClassNames()[i]
         return self._deviceNames.keys()
-    
-    def selection(self,devName):
-        if type(devName) == int:
+
+    def selection(self, devName):
+        if isinstance(devName, int):
             devName = self._ui.selectorCombo.currentText()
-        if not devName in self._deviceNames.keys():
-            self.warning("Selected device is not in the list of devices found!")
-        self.debug("selected %s"%(devName))
+        if devName not in self._deviceNames:
+            self.warning("Selected device is not "
+                         "in the list of devices found!")
+        self.debug("selected %s" % (devName))
         self._selectedDevice = devName
         self.modelChosen.emit()
-    
+
     def getSelectedDeviceName(self):
-        #self.debug("Requested which device was selected")
+        # self.debug("Requested which device was selected")
         return self._selectedDevice
-    
+
     def getSelectedDeviceClass(self):
         try:
             if self._selectedDevice in self._deviceNames.keys():
-                self.info("Getting device class for %s"%(self._selectedDevice))
+                self.info("Getting device class for %s"
+                          % (self._selectedDevice))
                 return self._deviceNames[str(self._selectedDevice)]
             else:
-                self.warning("Not found class for %s"%(self._selectedDevice))
-        except Exception,e:
-            self.error("Uou! As the selected device (%s) is not in the device "\
+                self.warning("Not found class for %s" % (self._selectedDevice))
+        except Exception as e:
+            self.error("Uou! As the selected device (%s) is not in the device "
                        "instances found (%s), its class is unknown: %s"
-                       %(self._selectedDevice,self._deviceNames,e))
+                       % (self._selectedDevice, self._deviceNames, e))
         return "unknown"
+
 
 def main():
     app = Qt.QApplication(sys.argv)
@@ -136,6 +134,7 @@ def main():
     w.setModel("MeasuredFillingPattern")
     w.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
