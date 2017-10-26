@@ -31,6 +31,10 @@ from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.taurusgui import TaurusGui
 from widgets import *
 
+# The version is updated automatically with bumpversion
+# Do not update manually
+__version = '1.0.0'
+
 BUNCHINTENSITY = 'BunchIntensity'
 INPUTSIGNAL = 'InputSignal'
 MEASURES = 'Measures'
@@ -211,8 +215,9 @@ def main():
     parser = argparse.get_taurus_parser()
     parser.add_option("--model")
     app = TaurusApplication(sys.argv, cmd_line_parser=parser,
-                      app_name='ctdiMeasuredFillingPattern', app_version='0.9',
-                      org_domain='ALBA', org_name='ALBA')
+                      app_name='ctdiMeasuredFillingPattern',
+                      app_version=__version, org_domain='ALBA',
+                      org_name='ALBA')
     options = app.get_command_line_options()
     ui = MainWindow()
     if options.model != None:
