@@ -97,30 +97,34 @@ class Attribute(object):
             self._callback = callback
             self._writeSend = False
             self.subscribe_event()
-        except Exception,e:
-            print("Attribute %s/%s init exception %s"%(devName,attrName,e))
-        self.debug("Attribute %s/%s init done"%(devName,attrName))
+        except Exception as e:
+            self.error("%s/%s init exception" % (devName, attrName))
+        finally:
+            self.debug("%s/%s init done"%(devName,attrName))
     def info(self,msg):
-        try: self.info_stream("In %s Attribute %s"%(self._name,msg))
+        try: self.info_stream("In %s Attribute: %s"%(self._name,msg))
         except: print("%s::info: %s"%(self._name,msg))
     def debug(self,msg):
-        try: self.debug_stream("In %s Attribute %s"%(self._name,msg))
+        try: self.debug_stream("In %s Attribute: %s"%(self._name,msg))
         except: print("%s::debug: %s"%(self._name,msg))
     def warn(self,msg):
-        try: self.warn_stream("In %s Attribute %s"%(self._name,msg))
+        try: self.warn_stream("In %s Attribute: %s"%(self._name,msg))
         except: print("%s::warn:  %s"%(self._name,msg))
     def error(self,msg):
-        try: self.error_stream("In %s Attribute %s"%(self._name,msg))
+        try: self.error_stream("In %s Attribute: %s"%(self._name,msg))
         except: print("%s::error: %s"%(self._name,msg))
     def subscribe_event(self):
         try:
             self._attrEvent = self._devProxy.subscribe_event(self._attrName,
                                                 PyTango.EventType.CHANGE_EVENT,
                                                                self)
-        except DevFailed,e:
-            self.error("%s::subscribe_event() DevFailed: %s"%(self._name,e))
+        except PyTango.DevFailed as e:
+            msgs = ""
+            for each in e.args:
+                msgs = "%s%s. " % (msgs, each.desc)
+            self.error("%s::subscribe_event() DevFailed: %s" % (self._name, msgs))
             raise e
-        except Exception,e:
+        except Exception as e:
             self.error("%s::subscribe_event() exception %s:"%(self._name,e))
         else:
             self.debug("%s::subscribe_event() subscribed"%(self._name))
@@ -714,7 +718,7 @@ class BunchAnalyzer(object):
             events2emit.append(['BunchIntensity',self._bunchIntensity])
             events2emit.append(['FilledBunches',self._filledBunches])
             events2emit.append(['SpuriousBunches',self._spuriousBunches])
-            events2emit.append(['nBunches',nBunches])
+            events2emit.append(['nBunches',self._filledBunches-self._spuriousBunches])
             self.debug("len InputSignal = %d"%(len(self.InputSignal)))
             events2emit.append(['InputSignal',self.InputSignal])
             events2emit.append(['resultingFrequency',self._resultingFrequency])

@@ -262,6 +262,13 @@ class MeasuredFillingPatternFCT (PyTango.Device_4Impl):
                 else:
                     self.push_change_event(attrEvent[0],attrEvent[1],timestamp,
                                            PyTango.AttrQuality.ATTR_VALID)
+            except PyTango.DevFailed as e:
+                msgs = ""
+                for each in e.args:
+                    msgs = "%s%s. " % (msgs, each.desc)
+                self.error_stream("In %s::fireEventsList() Exception with "\
+                                  "attribute %s: %s"
+                                  %(self.get_name(),attrEvent[0],msgs))
             except Exception,e:
                 self.error_stream("In %s::fireEventsList() Exception with "\
                                   "attribute %s: %s"
